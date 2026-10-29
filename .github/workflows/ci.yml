@@ -25,6 +25,7 @@ jobs:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Run logic and scheduling tests
@@ -54,14 +55,18 @@ jobs:
       M5STACK_CORE_VERSION: 3.3.10
       M5STACK_INDEX_URL: https://static-cdn.m5stack.com/resource/arduino/package_m5stack_index.json
       ATOM_FQBN: m5stack:esp32:m5stack_atom:PartitionScheme=min_spiffs
-      ARDUINO_DIRECTORIES_DATA: ${{ runner.temp }}/watchsync-arduino/data
-      ARDUINO_DIRECTORIES_DOWNLOADS: ${{ runner.temp }}/watchsync-arduino/downloads
-      ARDUINO_DIRECTORIES_USER: ${{ runner.temp }}/watchsync-arduino/user
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
+
+      - name: Configure isolated Arduino directories
+        run: |
+          echo "ARDUINO_DIRECTORIES_DATA=$RUNNER_TEMP/watchsync-arduino/data" >> "$GITHUB_ENV"
+          echo "ARDUINO_DIRECTORIES_DOWNLOADS=$RUNNER_TEMP/watchsync-arduino/downloads" >> "$GITHUB_ENV"
+          echo "ARDUINO_DIRECTORIES_USER=$RUNNER_TEMP/watchsync-arduino/user" >> "$GITHUB_ENV"
 
       - name: Install pinned Arduino CLI
         run: |

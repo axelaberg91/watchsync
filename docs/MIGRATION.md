@@ -10,9 +10,17 @@ Review the preparation pull request and its checks before merging. Preparing thi
 source does not authorize a merge, public visibility change or production deploy.
 Keep the existing repositories and live website operational during review.
 
-The new repository starts from a clean, reviewed source snapshot. Do not merge,
-fetch or push historical private branches into it. Use fresh clones with the
-GitHub noreply commit identity, including for migration commits and tags.
+The final public repository starts from a clean, reviewed source snapshot. Do not
+merge, fetch or push historical private branches or synthetic PR merge references
+into it. Use fresh clones with the GitHub noreply commit identity, including for
+migration commits and tags. Enable GitHub account email privacy before creating
+web commits, PRs or merge commits. Verify their stored author metadata too.
+
+Keep the private preparation repository private: GitHub may retain cached PR
+references and old workflow logs even after branches are cleaned. Transfer only
+the reviewed clean branch graph to a freshly created final repository. Do not
+make a preparation repository public if an earlier generated commit exposed a
+private address; rewriting visible branches alone is not a complete purge.
 
 ## Release preparation
 
@@ -36,9 +44,11 @@ unchanged in the archives, even when new public builds use neutral paths.
    separately and incorporate reviewed source changes without importing history.
 2. Verify recoverable copies of both existing repositories, tags, published release
    assets, metadata and active development branches. Keep archives private.
-3. Rename the existing private `watchsync` to `watchsync-private-archive`. Rename
-   the reviewed clean repository to `watchsync`. Names do not transfer repository
-   IDs, permissions, integration settings or release assets.
+3. Rename the existing private `watchsync` to `watchsync-private-archive`. Create
+   a fresh empty `watchsync`, initialize it with a verified noreply identity, and
+   transfer only the reviewed clean branch graph. Verify the source tree matches
+   the approved preparation PR. Keep the preparation PR and its logs private.
+   Repository names do not transfer IDs, permissions, integrations or release assets.
 4. Publish the clean firmware and `hardware-v14` release packages. Verify every
    asset's name, byte size and checksum at its final URL. Register the verified
    firmware package with the website release tool and update both languages.

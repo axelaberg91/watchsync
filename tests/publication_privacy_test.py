@@ -3,7 +3,9 @@
 """Regression fixtures for publication boundaries, including binary metadata."""
 import importlib.util
 import io
+import os
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 import zipfile
@@ -91,6 +93,29 @@ class PublicationPrivacyTests(unittest.TestCase):
             for index in range(privacy.MAX_ARCHIVE_MEMBERS + 1):
                 archive.writestr(f'item-{index}', b'clean')
         self.assertTrue(any('member review limit' in e for e in self.review(stream.getvalue())))
+
+    def test_mailmap_cannot_hide_original_commit_contact(self):
+        private_address = 'private.fixture' + '@' + 'gmail.com'
+        public_address = '123+fixture' + '@' + 'users.noreply.github.com'
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            environment = os.environ.copy()
+            environment.update(GIT_AUTHOR_NAME='Fixture', GIT_COMMITTER_NAME='Fixture',
+                               GIT_AUTHOR_EMAIL=private_address, GIT_COMMITTER_EMAIL=private_address)
+            for args in [('init', '--quiet'),
+                         ('-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=.git/no-hooks',
+                          'commit', '--allow-empty', '--quiet', '-m', 'Privacy fixture')]:
+                subprocess.run(['git', '-C', str(root), *args], env=environment,
+                               check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # A working-tree mailmap masks the display identity, while the
+            # original address remains in the commit object itself.
+            (root / '.mailmap').write_text(f'Fixture <{public_address}> <{private_address}>\n', encoding='utf-8')
+            mapped = privacy.git(root, 'log', '-1', '--format=%aE').decode().strip()
+            self.assertEqual(mapped, public_address)
+            review = privacy.Review()
+            privacy.scan_history(review, root)
+            self.assertTrue(any(e.startswith('Git commit metadata: contact address') for e in review.errors))
+            self.assertNotIn(private_address, '\n'.join(review.errors))
 
 
 if __name__ == '__main__':
