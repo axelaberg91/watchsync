@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "state": "staged",
+  "state": "ready",
   "repository": "axelaberg91/watchsync",
   "firmwareVersion": "1.12.2",
   "firmware": {
@@ -58,31 +58,5 @@
         "sha256": "49c7923bc632c0d79bab3e28402e75348f222d6fe5ea34c8755b93c92a57f4a1"
       }
     ]
-  },
-  "legacy": {
-    "currentVersion": "1.12.1",
-    "releaseCatalog": {
-      "schemaVersion": 1,
-      "releases": [
-        {
-          "version": "1.12.1",
-          "target": "M5 Atom Lite (classic ESP32), GPIO25",
-          "partitionScheme": "min_spiffs",
-          "size": 1163440,
-          "sha256": "392cc9b792adeeaf4b6c27d3a53bb0da4f8e5b8dfb3c8b263f9c3c853f06da28",
-          "date": "2026-10-28",
-          "summary": "Wi-Fi setup, scheduled transmission and local firmware updates.",
-          "summarySv": "Wi-Fi-inst\u00e4llning, schemalagd s\u00e4ndning och lokala firmwareuppdateringar.",
-          "binaryUrl": "https://raw.githubusercontent.com/axelaberg91/Watchsync-Public/21cf9e67491abb5d7e2d197e12626c73889c588d/ota/1.12.1/watchsync-1.12.1.bin",
-          "notesUrl": "https://github.com/axelaberg91/Watchsync-Public/blob/21cf9e67491abb5d7e2d197e12626c73889c588d/ota/1.12.1/RELEASE_NOTES.md"
-        }
-      ]
-    },
-    "hardwareUrls": [
-      "https://raw.githubusercontent.com/axelaberg91/Watchsync-Public/5355dc60727bef92d1ec1e7efa51eadb901ccc81/stl/watchsync-base.stl",
-      "https://raw.githubusercontent.com/axelaberg91/Watchsync-Public/5355dc60727bef92d1ec1e7efa51eadb901ccc81/stl/watchsync-lid.stl",
-      "https://raw.githubusercontent.com/axelaberg91/Watchsync-Public/5355dc60727bef92d1ec1e7efa51eadb901ccc81/stl/watchsync-bobbin.stl"
-    ],
-    "sourceArchiveUrl": "https://github.com/axelaberg91/Watchsync-Public/archive/50aa366e98a865e8f6bc9d6db49067975f78e402.zip"
   }
 }
