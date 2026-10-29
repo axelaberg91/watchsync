@@ -22,8 +22,7 @@ profile is M5Stack ESP32 **3.3.10**, classic Atom Lite, **GPIO25** and Minimal S
 with OTA. Wi-Fi is configured on the device; credentials are never compiled in.
 
 See [development](docs/DEVELOPMENT.md), [firmware updates](docs/OTA.md) and
-[website deployment](website/site-deployment.md). The repository transition is
-described in [migration](docs/MIGRATION.md).
+[website deployment](website/site-deployment.md).
 
 Original contributions by **axelaberg91** use **CC BY-NC 4.0**. Inherited firmware
 from [Tan Vachiramon](https://github.com/tanvach/clocksync) and

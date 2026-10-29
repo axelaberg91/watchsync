@@ -21,7 +21,7 @@ current hardware. Keep user guides on the website and developer instructions in
 - Do not manually upload feature branches or unmerged PRs to production. Keep
   preview builds disabled unless separately requested.
 - Run website validation, language checks and a Worker packaging dry run before
-  opening a deployment-related PR. Enforce the migration gate before cutover.
+  opening a deployment-related PR. Keep the release verification gate enabled.
 - Keep credentials in the platform's secret store. Do not commit `.env`,
   `.dev.vars`, tokens, logs, generated pages, dependency trees or build outputs.
 - Describe only the current published device interface in both website
