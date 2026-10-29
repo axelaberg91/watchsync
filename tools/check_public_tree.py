@@ -34,6 +34,8 @@ PATTERNS = {
 EMAIL = re.compile(rb'(?<![A-Za-z0-9_.+%-])[A-Za-z0-9_.+%-]{3,}@[A-Za-z0-9-]{2,}(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,24}(?![A-Za-z0-9])')
 # Reserved example domains and GitHub privacy addresses are safe to publish.
 SAFE_EMAIL_DOMAINS = {'example.com', 'example.org', 'example.net', 'users.noreply.github.com'}
+# GitHub web merges use this public system identity, not an account address.
+SAFE_EMAIL_ADDRESSES = {b'noreply@github.com'}
 ASSIGNMENT = re.compile(
     rb'(?im)\b(?:WIFI_SSID|WIFI_PASS(?:WORD)?|AWS_SECRET_ACCESS_KEY|CLOUDFLARE_API_(?:TOKEN|KEY)|'
     rb'GITHUB_TOKEN|API_SECRET|API_KEY|API_TOKEN|CLIENT_SECRET|ACCESS_TOKEN)\b[\"\']?\s*'
@@ -69,6 +71,8 @@ class Review:
         # Review each decompressed member instead of interpreting compressed data.
         if not is_zip:
             for match in EMAIL.finditer(body):
+                if match.group().lower() in SAFE_EMAIL_ADDRESSES:
+                    continue
                 domain = match.group().split(b'@', 1)[1].decode('ascii').lower()
                 if domain in SAFE_EMAIL_DOMAINS or domain.endswith(('.invalid', '.example', '.test')):
                     continue

@@ -37,6 +37,14 @@ class PublicationPrivacyTests(unittest.TestCase):
         self.assertFalse(self.review(b'developer' + b'@' + b'example.invalid'))
         self.assertFalse(self.review(b'123+contributor' + b'@' + b'users.noreply.github.com'))
 
+    def test_github_system_identity_is_exactly_allowlisted(self):
+        self.assertFalse(self.review(b'noreply' + b'@' + b'github.com'))
+        self.assertFalse(self.review(b'NOREPLY' + b'@' + b'GITHUB.COM'))
+        for address in (b'private.person' + b'@' + b'github.com',
+                        b'other-noreply' + b'@' + b'github.com',
+                        b'noreply' + b'@' + b'github.com.private.invalid.com'):
+            self.assertTrue(any('contact address' in e for e in self.review(address)))
+
     def test_compressed_xml_metadata_is_checked(self):
         stream = io.BytesIO()
         with zipfile.ZipFile(stream, 'w', zipfile.ZIP_DEFLATED) as archive:
