@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 250" role="img" aria-label="G25 connects through red wire, a 330 ohm resistor and red wire to the 15-turn coil. The other coil end connects through black wire to GND.">
+<!-- Original illustration by axelaberg91; CC BY-NC 4.0. -->
+<rect width="760" height="250" rx="12" fill="#f4f5f6"/>
+<g fill="none" stroke-width="3" stroke-linejoin="round">
+<path d="M90 95h115m90 0h115" stroke="#b94638"/>
+<path d="M205 95l9-14 12 28 12-28 12 28 12-28 12 28 12-28 9 14" stroke="#37474f"/>
+<path d="M410 95c0-30 22-30 22 0s22 30 22 0 22-30 22 0 22 30 22 0 22-30 22 0" stroke="#a86532"/>
+<path d="M520 95h150v88H90v-55" stroke="#303638"/>
+<circle cx="90" cy="95" r="5" fill="#f4f5f6" stroke="#37474f"/>
+<circle cx="90" cy="128" r="5" fill="#f4f5f6" stroke="#37474f"/>
+</g>
+<g font-family="system-ui,sans-serif" fill="#222b30" text-anchor="middle">
+<text x="90" y="56" font-size="17">Atom Lite G25</text>
+<text x="250" y="56" font-size="17">330 Ω · 0.25 W</text>
+<text x="465" y="56" font-size="17">15-turn coil</text>
+<text x="465" y="142" font-size="14">0.5 mm enamelled wire</text>
+<text x="90" y="158" font-size="17">GND</text>
+<text x="350" y="121" font-size="13" fill="#a3352c">Red</text>
+<text x="600" y="158" font-size="13">Black</text>
+<text x="380" y="227" font-size="12">Electrical circuit only — use the G25 and GND markings on your Atom Lite.</text>
+</g></svg>

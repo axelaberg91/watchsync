@@ -1,0 +1,35 @@
+# Local credentials and configuration
+secrets.h
+secret.h
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+
+# Dependencies and generated outputs
+node_modules/
+dist/
+.wrangler/
+build/
+.build/
+.pio/
+.pioenvs/
+.piolibdeps/
+release-staging/
+*.bin
+*.elf
+*.hex
+*.map
+*.stl
+*.3mf
+*.zip
+
+# Editor and temporary files
+.vscode/
+*.code-workspace
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+*.log
+*.bak

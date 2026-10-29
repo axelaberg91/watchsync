@@ -1,0 +1,8 @@
+dist/
+.wrangler/
+node_modules/
+.dev.vars
+.env
+
+# Generated from English pages and translations/sv.json.
+site/sv/
