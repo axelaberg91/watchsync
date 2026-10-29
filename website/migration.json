@@ -3,7 +3,42 @@
   "state": "staged",
   "repository": "axelaberg91/watchsync",
   "firmwareVersion": "1.12.2",
-  "firmware": null,
+  "firmware": {
+    "version": "1.12.2",
+    "tag": "v1.12.2",
+    "assets": [
+      {
+        "name": "CC-BY-NC-4.0.txt",
+        "size": 19347,
+        "sha256": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0"
+      },
+      {
+        "name": "LICENSE.md",
+        "size": 3778,
+        "sha256": "3878971fe39c59922f5de163ccbbc3f738041c613623316d3402e524482a80bd"
+      },
+      {
+        "name": "manifest.json",
+        "size": 410,
+        "sha256": "972b4e9963ddec3275da0ac249568b59807640dbea28974758c88e6878be17ab"
+      },
+      {
+        "name": "RELEASE_NOTES.md",
+        "size": 1740,
+        "sha256": "fc142cd82965cefd220009144d7b309e940224246c84d8d944c5aba646fd5392"
+      },
+      {
+        "name": "SHA256SUMS",
+        "size": 87,
+        "sha256": "af5bb282254f4a20e358cc2ba2c1c9ee31bf72afaac972253a75b72beaebe672"
+      },
+      {
+        "name": "watchsync-1.12.2.bin",
+        "size": 1163248,
+        "sha256": "f7d36a22a085de33ba4d3b6cc4a33e9756b71771897806ed70b197e67aa800dd"
+      }
+    ]
+  },
   "hardware": {
     "tag": "hardware-v14",
     "assets": [
@@ -37,7 +72,7 @@
           "sha256": "392cc9b792adeeaf4b6c27d3a53bb0da4f8e5b8dfb3c8b263f9c3c853f06da28",
           "date": "2026-10-28",
           "summary": "Wi-Fi setup, scheduled transmission and local firmware updates.",
-          "summarySv": "Wi-Fi-inställning, schemalagd sändning och lokala firmwareuppdateringar.",
+          "summarySv": "Wi-Fi-inst\u00e4llning, schemalagd s\u00e4ndning och lokala firmwareuppdateringar.",
           "binaryUrl": "https://raw.githubusercontent.com/axelaberg91/Watchsync-Public/21cf9e67491abb5d7e2d197e12626c73889c588d/ota/1.12.1/watchsync-1.12.1.bin",
           "notesUrl": "https://github.com/axelaberg91/Watchsync-Public/blob/21cf9e67491abb5d7e2d197e12626c73889c588d/ota/1.12.1/RELEASE_NOTES.md"
         }

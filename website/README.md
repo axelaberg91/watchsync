@@ -41,9 +41,10 @@ in English. Update the guides together when that interface changes. A staged
 package does not make its download available to visitors.
 
 Use `tools/add_release.py` with a checked local release package, date and both
-language summaries to register its metadata and asset hashes. During this
-transition, pass `--replace-guide-version 1.12.1` for the privacy-only 1.12.2
-release. The tool stages files; it never uploads assets, changes repository
+language summaries to register its metadata and asset hashes. The clean CI
+package for version 1.12.2 is registered in the staged catalog and `migration.json`.
+Its summaries reuse the current functional description because firmware behavior
+is unchanged. The tool stages files; it never uploads assets, changes repository
 visibility or enables production publication.
 
 ## Languages
