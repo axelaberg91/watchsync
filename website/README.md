@@ -26,12 +26,9 @@ Firmware and printable downloads use versioned GitHub Release assets from the
 same repository. Source code and current CAD stay in Git; large downloadable
 files stay in Releases. Keep existing release bytes immutable.
 
-`migration.json` records the final repository and expected release asset hashes.
-Its temporary `legacy` section is nonserved migration evidence. The repository
-transition remains staged until release 1.12.2 and `hardware-v14` are published,
-the catalog matches their verified bytes, and a reviewed change sets `state` to
-`ready` and removes `legacy`. Production deployment rechecks the public release
-assets. Local validation, builds and dry runs work while publication is staged.
+`migration.json` records the public repository and expected release asset hashes.
+Production deployment verifies the release assets before publishing; preserve this
+check when updating release metadata.
 
 ## Device interface documentation
 
@@ -41,11 +38,8 @@ in English. Update the guides together when that interface changes. A staged
 package does not make its download available to visitors.
 
 Use `tools/add_release.py` with a checked local release package, date and both
-language summaries to register its metadata and asset hashes. The clean CI
-package for version 1.12.2 is registered in the staged catalog and `migration.json`.
-Its summaries reuse the current functional description because firmware behavior
-is unchanged. The tool stages files; it never uploads assets, changes repository
-visibility or enables production publication.
+language summaries to register its metadata and asset hashes. The tool stages
+files; it does not upload assets or publish the website.
 
 ## Languages
 
