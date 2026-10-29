@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en" data-page="support.html"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f4f5f6"><meta name="description" content="Get help with your Watchsync or send a message using the support form.">
+<title>Contact support · watchsync</title><link rel="icon" href="assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/style.css"><link rel="alternate" hreflang="en" href="support.html"><link rel="alternate" hreflang="sv" href="sv/support.html"><script src="assets/language.js"></script><script src="assets/navigation.js" defer></script></head>
+<body><a class="skip" href="#main">Skip to content</a><div class="shell"><header><a class="brand" href="index.html"><span class="mark" aria-hidden="true">×</span>watchsync</a><div class="header-tools"><nav class="language-switch" aria-label="Language"><a href="support.html?lang=en" lang="en" hreflang="en" data-language="en" aria-current="true">English</a><a href="sv/support.html?lang=sv" lang="sv" hreflang="sv" data-language="sv">Svenska</a></nav></div></header>
+<nav class="nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="get-watchsync.html">Get a Watchsync</a><a href="diy.html">DIY</a><details class="nav-guides"><summary>Guides</summary><div class="guide-links"><a href="quick-start.html">Quick start</a><a href="manual.html">Manual</a></div></details><a href="updates.html">Updates</a><a href="troubleshooting.html">Help</a></nav><main id="main"><div class="page-heading"><p class="eyebrow">Watchsync guide</p><h1>Contact support</h1><p class="lead">Get help with your Watchsync or send a message using the support form.</p></div><div class="document-layout"><aside class="toc" aria-label="On this page"><p>On this page</p><a href="#contact">Contact support</a><a href="#compatibility">Compatibility and limits</a></aside><div class="article"><section id="contact" class="doc-section"><p class="callout">Looking for a quick answer? Start with the <a href="troubleshooting.html">troubleshooting guide</a>.</p>
+<h2>Send a message</h2>
+<p>Send a message about your Watchsync device using the form below.</p>
+<form class="support-form" id="supportForm" method="post" action="https://formspree.io/f/xppppead"><input type="hidden" name="language" value="en">
+<div class="support-fields">
+<div><label for="supportEmail">Your email</label><input id="supportEmail" name="email" type="email" autocomplete="email" maxlength="254" required></div>
+<div><label for="supportSubject">Subject</label><input id="supportSubject" name="subject" type="text" maxlength="160" required></div>
+</div>
+<div><label for="supportVersion">Firmware version <span class="optional">(optional)</span></label><input id="supportVersion" name="firmware_version" type="text" maxlength="40" placeholder="For example, 1.12.2" autocapitalize="none" spellcheck="false"></div>
+<div><label for="supportMessage">Message</label><textarea id="supportMessage" name="message" rows="7" maxlength="10000" aria-describedby="messageHelp" required></textarea><p id="messageHelp" class="small muted">For troubleshooting, include your watch model, selected signal and time zone, status light, and what happened.</p></div>
+<input type="text" name="_gotcha" class="form-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+<p class="small muted">Your details and message are processed by <a href="https://formspree.io/legal/privacy-policy/">Formspree</a> and forwarded to Watchsync support.</p>
+<div class="actions"><button class="button primary" type="submit">Send message</button></div>
+</form>
+</section><section id="compatibility" class="doc-section"><h2>Compatibility and limits</h2><p>These instructions cover the <strong>classic M5 Atom Lite (ESP32)</strong> with the antenna connected to GPIO25.</p><p>Wi-Fi must support 2.4 GHz. Watch reception depends on supported protocol, watch settings, orientation and interference.</p></section></div></div></main>
+<footer><span>watchsync · by axelaberg91</span><div><a href="get-watchsync.html">Get a Watchsync</a><a href="support.html">Contact</a><a href="licensing.html">Licensing</a><a href="https://github.com/axelaberg91/watchsync/releases">Releases</a></div></footer></div></body></html>

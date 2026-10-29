@@ -1,0 +1,73 @@
+{
+  "scope": "Existing digital checks of the unchanged v14 bottom-plate STL; not a new physical or device validation",
+  "watertight": true,
+  "consistentWinding": true,
+  "solidComponents": 1,
+  "boundsMm": [
+    [
+      -53.19999694824219,
+      -53.19999694824219,
+      -3.814697322468419e-07
+    ],
+    [
+      53.19999694824219,
+      53.19999694824219,
+      10.899996757507324
+    ]
+  ],
+  "triangles": 36398,
+  "qrDecodedFromStlSection": "https://watchsync.axelaberg91.workers.dev/",
+  "qrWidthIncludingQuietZoneMm": 50.9,
+  "qrActiveSymbolWidthMm": 39.894594594594594,
+  "quietZoneModules": 4,
+  "letterRows": [
+    {
+      "boundsWorldMm": [
+        [
+          -15.1483,
+          8.05523,
+          -0.04
+        ],
+        [
+          15.1483,
+          11.7448,
+          0.4
+        ]
+      ],
+      "screwHeadClearanceAtLeastMm": 1
+    },
+    {
+      "boundsWorldMm": [
+        [
+          -33.5764,
+          21.3552,
+          -0.04
+        ],
+        [
+          33.5764,
+          25.0448,
+          0.4
+        ]
+      ],
+      "screwHeadClearanceAtLeastMm": 1
+    },
+    {
+      "boundsWorldMm": [
+        [
+          -51.0001,
+          34.6453,
+          -0.04
+        ],
+        [
+          51.0002,
+          38.3547,
+          0.4
+        ]
+      ],
+      "screwHeadClearanceAtLeastMm": 1
+    }
+  ],
+  "rowCentreSpacingMm": 13.3,
+  "upperGeometryDifferenceMm3": 0.0,
+  "physicalPrintVerified": false
+}

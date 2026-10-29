@@ -1,0 +1,14 @@
+{
+  "name": "watchsync-website",
+  "private": true,
+  "license": "CC-BY-NC-4.0",
+  "scripts": {
+    "build": "python3 tools/build_worker.py",
+    "deploy": "node tools/deploy.mjs",
+    "check:package": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "check:publication": "node tools/verify_release_assets.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "4.154.0"
+  }
+}

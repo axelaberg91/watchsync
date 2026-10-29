@@ -1,0 +1,102 @@
+# SPDX-License-Identifier: CC-BY-NC-4.0
+# Automated build checks for watchsync by axelaberg91.
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  logic:
+    name: Logic tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Run logic and scheduling tests
+        run: |
+          g++ -std=c++17 -O2 tests/logic_test.cpp -o "$RUNNER_TEMP/watchsync-logic-test"
+          "$RUNNER_TEMP/watchsync-logic-test"
+          g++ -std=c++17 -O2 tests/schedule_test.cpp -o "$RUNNER_TEMP/watchsync-schedule-test"
+          "$RUNNER_TEMP/watchsync-schedule-test"
+          g++ -std=c++17 -O2 tests/ota_policy_test.cpp -o "$RUNNER_TEMP/watchsync-ota-test"
+          "$RUNNER_TEMP/watchsync-ota-test"
+          g++ -std=c++17 -O2 -Itests/ota_fakes tests/ota_server_test.cpp -o "$RUNNER_TEMP/watchsync-ota-server-test"
+          "$RUNNER_TEMP/watchsync-ota-server-test"
+          g++ -std=c++17 -O2 -Itests/device_fakes tests/device_config_test.cpp -o "$RUNNER_TEMP/watchsync-device-test"
+          "$RUNNER_TEMP/watchsync-device-test"
+          node tests/web_ui_test.js
+          node tests/request_test.js
+          node tests/ota_ui_test.js
+          python3 tests/package_firmware_test.py
+
+  atom:
+    name: Atom Lite build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      ARDUINO_CLI_VERSION: 1.5.1
+      ARDUINO_CLI_ARCHIVE_SHA256: 28a8e119c498a25607821c36cb2dc49e8463941b261a0d99091baa7bc692dd2b
+      M5STACK_CORE_VERSION: 3.3.10
+      M5STACK_INDEX_URL: https://static-cdn.m5stack.com/resource/arduino/package_m5stack_index.json
+      ATOM_FQBN: m5stack:esp32:m5stack_atom:PartitionScheme=min_spiffs
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Configure isolated Arduino directories
+        run: |
+          echo "ARDUINO_DIRECTORIES_DATA=$RUNNER_TEMP/watchsync-arduino/data" >> "$GITHUB_ENV"
+          echo "ARDUINO_DIRECTORIES_DOWNLOADS=$RUNNER_TEMP/watchsync-arduino/downloads" >> "$GITHUB_ENV"
+          echo "ARDUINO_DIRECTORIES_USER=$RUNNER_TEMP/watchsync-arduino/user" >> "$GITHUB_ENV"
+
+      - name: Install pinned Arduino CLI
+        run: |
+          archive="$RUNNER_TEMP/arduino-cli.tar.gz"
+          curl --fail --location --retry 3 --output "$archive" \
+            "https://github.com/arduino/arduino-cli/releases/download/v${ARDUINO_CLI_VERSION}/arduino-cli_${ARDUINO_CLI_VERSION}_Linux_64bit.tar.gz"
+          printf '%s  %s\n' "$ARDUINO_CLI_ARCHIVE_SHA256" "$archive" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/arduino-cli-bin"
+          tar --extract --gzip --file "$archive" --directory "$RUNNER_TEMP/arduino-cli-bin" arduino-cli
+          echo "$RUNNER_TEMP/arduino-cli-bin" >> "$GITHUB_PATH"
+
+      - name: Cache Arduino board tools
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.ARDUINO_DIRECTORIES_DATA }}/packages
+          key: arduino-${{ runner.os }}-${{ runner.arch }}-cli-${{ env.ARDUINO_CLI_VERSION }}-m5stack-${{ env.M5STACK_CORE_VERSION }}
+
+      - name: Install pinned M5Stack core
+        run: |
+          arduino-cli core update-index --additional-urls "$M5STACK_INDEX_URL"
+          arduino-cli core install "m5stack:esp32@${M5STACK_CORE_VERSION}" --additional-urls "$M5STACK_INDEX_URL"
+
+      - name: Build and package the reviewed privacy-safe Atom profile
+        run: python3 tools/build_firmware.py --workspace "$RUNNER_TEMP/watchsync-firmware" --arduino-data "$ARDUINO_DIRECTORIES_DATA"
+
+      - name: Upload Atom Lite firmware
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: watchsync-atom-lite-ota
+          path: ${{ runner.temp }}/watchsync-firmware/package/
+          if-no-files-found: error
+          retention-days: 30
+

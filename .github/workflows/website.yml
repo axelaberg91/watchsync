@@ -1,0 +1,35 @@
+name: Website checks
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  website:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - run: npm ci
+        working-directory: website
+      - run: python website/tools/validate_site.py
+      - run: python website/tools/build_worker.py
+      - run: node --check website/dist/worker.mjs
+      - run: node --check website/site/assets/releases.js
+      - run: npm run check:package
+        working-directory: website
+      - run: node website/tools/check_deploy_guard.mjs
+      - run: node website/tools/check_languages.mjs
+      - run: node website/tools/check_releases.mjs
+      - run: node website/tools/check_release_gate.mjs
