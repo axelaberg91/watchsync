@@ -1,7 +1,8 @@
 # Watchsync contributor instructions
 
-- Use English in source code, comments, logs and documentation. Maintain the
-  explicitly requested Swedish website translation alongside English pages.
+- Use English for newly authored code, comments, interface text, logs and
+  documentation. Preserve existing translation data; adding new Swedish prose
+  requires an explicit user request.
 - Fetch current remote state, use a separate branch and open a pull request.
   Leave it open unless the user explicitly authorizes merging.
 - Use the GitHub noreply identity for original commits. Never import private Git
