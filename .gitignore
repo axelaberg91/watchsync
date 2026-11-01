@@ -21,6 +21,9 @@ release-staging/
 *.hex
 *.map
 *.stl
+!/hardware/watchsync-base.stl
+!/hardware/watchsync-lid.stl
+!/hardware/watchsync-bobbin.stl
 *.3mf
 *.zip
 

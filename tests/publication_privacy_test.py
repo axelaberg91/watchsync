@@ -95,6 +95,25 @@ class PublicationPrivacyTests(unittest.TestCase):
             artifact.scan_file(path, path.name, artifact=True)
             self.assertFalse(artifact.errors)
 
+    def test_only_current_hardware_stls_are_allowed_and_still_scanned(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'part.stl'
+            path.write_bytes(b'clean STL fixture')
+            for label in ('hardware/watchsync-base.stl', 'hardware/watchsync-lid.stl',
+                          'hardware/watchsync-bobbin.stl'):
+                review = privacy.Review()
+                review.scan_file(path, label)
+                self.assertFalse(review.errors)
+            for label in ('part.stl', 'hardware/experiment.stl',
+                          'archive/hardware/watchsync-base.stl', 'website/site/watchsync-base.stl'):
+                review = privacy.Review()
+                review.scan_file(path, label)
+                self.assertTrue(any('outside Git' in error for error in review.errors))
+            path.write_bytes(b'private.fixture' + b'@' + b'gmail.com')
+            review = privacy.Review()
+            review.scan_file(path, 'hardware/watchsync-base.stl')
+            self.assertTrue(any('contact address' in error for error in review.errors))
+
     def test_archive_bounds_fail_closed(self):
         stream = io.BytesIO()
         with zipfile.ZipFile(stream, 'w') as archive:

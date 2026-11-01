@@ -21,8 +21,9 @@ releases remain archived. Do not recreate a separate public file mirror.
 - Keep the root README short and direct visitors to the website. User guides
   belong on the website; build, development and OTA internals belong in `docs/`
   and website deployment instructions in `website/site-deployment.md`.
-- Keep only current editable hardware in the active source tree. Distribute
-  firmware binaries, printable files and complete packages through Releases.
+- Keep current editable hardware and the current individual STL parts in the
+  root-level `hardware/` directory. Keep older revisions in versioned Releases.
+  Distribute firmware binaries and complete packages through Releases.
 - Use the relevant owning instructions when needed: `docs/DEVELOPMENT.md` for
   builds, `docs/OTA.md` for OTA behavior, `website/README.md` for website sources
   and translations, and `website/site-deployment.md` for deployment.
@@ -112,9 +113,19 @@ releases remain archived. Do not recreate a separate public file mirror.
   `WATCHSYNC-OTA:ATOM-LITE:GPIO25:v1` marker and saved-settings behavior.
 - Never introduce a secrets-header build path or compile Wi-Fi credentials.
   Stage distribution builds from an explicit allowlist and neutral build paths.
-- Keep firmware binaries, STL/3MF files and ZIP packages in versioned Releases,
+- Keep firmware binaries, 3MF files and ZIP packages in versioned Releases,
   outside the Git source tree. Include exact source commit, target, toolchain,
   application size, checksums, release notes and verification status.
+- Also track the current `watchsync-base.stl`, `watchsync-lid.stl` and
+  `watchsync-bobbin.stl` individually in the repository's root-level `hardware/`
+  directory alongside the editable model. Copy the exact published release
+  bytes and verify their checksums; do not silently re-export them. Update these
+  current files together when publishing a new hardware revision.
+- Publish every printable part as a separate STL asset in each hardware Release.
+  A combined ZIP package is an optional addition, never a replacement for the
+  individual STL downloads. Include each STL in the manifest and checksums.
+- Link the individual STL assets directly from the website's DIY download list
+  so visitors can download each part without extracting an archive.
 - Commit the source before packaging. Scan final binary/archive bytes for private
   data, then validate their checksums. Use a new version for changed bytes;
   never overwrite or silently rebuild an existing published release.

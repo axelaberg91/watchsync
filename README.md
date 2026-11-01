@@ -12,7 +12,7 @@ Versioned firmware and print packages are distributed through GitHub Releases.
 | --- | --- |
 | `watchsync/` | Arduino sketch and supporting headers |
 | `website/` | Static website, translations and legacy-address redirect |
-| `hardware/` | Current editable enclosure design and verification scope |
+| `hardware/` | Current editable enclosure design, individual STL parts and verification scope |
 | `tests/`, `tools/` | Build, test, packaging and publication checks |
 | `docs/` | Development, release and deployment instructions |
 
