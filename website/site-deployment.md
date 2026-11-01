@@ -1,71 +1,79 @@
 # Website deployment
 
-Production: https://watchsync.axelaberg91.workers.dev/
-Worker: `watchsync`. Repository: `axelaberg91/watchsync`.
+Production: https://axelaberg91.github.io/watchsync/
+Repository: `axelaberg91/watchsync`. Publishing branch: `master`.
 
 ## Publishing policy
 
-Work on a separate branch, pass checks, and open a pull request. Publish only
-after review and merge to `master`, through Cloudflare Workers Builds. Never
-upload an unmerged branch manually. The deploy script rejects local runs and
-branches other than `master`; this is an accident guard, not a replacement for
-repository permissions and correct trigger configuration.
+Work on a separate branch, pass checks, and open a pull request. Only reviewed,
+merged `master` may publish through `.github/workflows/pages.yml`. PRs run checks
+without deploying. Manual workflow dispatch is also restricted to `master`.
+Keep the Pages environment restricted to that branch.
 
-## Cloudflare connection
+Configure **Settings → Pages → Build and deployment → Source → GitHub Actions**.
+The workflow uses `GITHUB_TOKEN` and GitHub's deployment identity; do not create
+or commit a separate token. Enforce HTTPS.
 
-The existing `watchsync` Worker uses the public repository as its production
-source. Keep one production build trigger and previews disabled.
+## Build and deployment checks
 
-| Setting | Value |
-| --- | --- |
-| Repository | `axelaberg91/watchsync` |
-| Production branch | `master` |
-| Root directory | `website` |
-| Build command | `npm run build` |
-| Deploy command | `npm run deploy` |
-| Preview / non-production branch builds | Disabled |
-| Include build watch paths | `website/**` |
-| Build variable | `NODE_VERSION=24.19.0` |
-| Build variable | `PYTHON_VERSION=3.12` |
+The build job uses Python 3.12 and Node.js 24.19.0, generates both languages,
+validates links and release metadata, and creates `website/dist/pages/`. Only
+validated static assets and `.nojekyll` enter the artifact. Source, firmware,
+CAD, dependencies and local files remain outside it.
 
-Workers Builds installs dependencies from `package-lock.json`. Wrangler is pinned
-in `package.json`. Use the Cloudflare-managed build token; never commit a token
-or add one to GitHub. Do not override injected `WORKERS_CI` or
-`WORKERS_CI_BRANCH` variables.
+Static-path checks resolve links and anchors beneath `/watchsync/`, including
+404 base paths. PR checks also exercise language selection, saved preferences,
+blocked storage, query and fragment preservation, release links and legacy
+redirects. The Worker dry run remains a transition compatibility check.
 
-## Checks and deployment
+Before artifact upload, `node tools/verify_release_assets.mjs` from `website/`
+verifies public readability, release state, filenames, sizes and SHA-256 hashes.
+Missing or changed assets block publication. Only the deploy job has
+`pages: write` and `id-token: write`. Actions are pinned to reviewed commits.
 
-GitHub validates the website and dry-runs Worker packaging on pull requests.
-From `website/`, run `npm ci`, `npm run build` and `npm run check:package`
-(Python 3 and Node.js required).
+Run locally from the repository root:
 
-Run `node tools/verify_release_assets.mjs` from `website/` to verify public
-readability, stable release state, exact filenames, sizes and SHA-256 checksums.
-`npm run deploy` repeats this check after checking its build context. An
-incomplete or changed release blocks deployment before Wrangler starts.
+```sh
+python website/tools/build_pages.py
+python website/tools/check_pages.py
+node website/tools/check_releases.mjs
+node website/tools/check_release_gate.mjs
+node website/tools/check_redirect.mjs
+```
 
-After a production build, confirm its commit matches merged `master`, deployment
-succeeds, and the live homepage, DIY, downloads and enquiry form load correctly.
-An open PR must leave production unchanged. Do not submit an enquiry as a
-deployment smoke test.
+For transition Worker checks, run `npm ci`, `npm run build`,
+`npm run check:package` and `node tools/check_languages.mjs` from `website/`.
+Pages itself does not require Wrangler.
 
-For rollback, revert the website change in a PR and merge it. In an urgent
-incident, restore a known-good production version in Cloudflare, then reconcile
-`master` before the next automatic build.
+## Production verification
 
-## Serving boundaries
+Confirm the Pages deployment identifies the intended merged commit. Check both
+languages, guides, direct URLs, language controls, mobile and desktop navigation,
+images, unknown-path 404 behavior and downloads. Inspect form endpoint, fields
+and language values without submitting an enquiry. Check publication file scope.
 
-Only `site/` assets are embedded in the Worker. The builder rejects growth above
-750 kB. Firmware, secrets and development files are outside the served tree.
-Large downloads use versioned release URLs in the same public repository. Logs and
-traces are enabled; version preview URLs are disabled.
+GitHub Pages owns response headers, caching and error-page selection. The old
+Worker's custom headers and localized error routing do not carry over. Missing
+paths use the English root `404.html`; the Swedish 404 remains directly available.
+Use `.html` URLs for canonical page links.
 
-Contact and purchase enquiries use Formspree. Recipient settings remain in its
-dashboard; no personal support email is rendered. Historical public Git commits
-are not rewritten by deployment changes.
+## Old-address compatibility
 
-References: [Build configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)
-and [Git integration](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/).
+The old `watchsync` Cloudflare Worker keeps its hostname as a small redirect
+using `src/legacy_redirect.js`. Leave the full site in place until Pages passes
+live verification. Disable the former automatic full-site build trigger before
+activating the redirect so later pushes cannot restore the old site over it.
 
-The two language versions share images and scripts. The bounded asset ceiling
-is 750 kB to accommodate translated HTML without duplicating media.
+The redirect preserves page/language paths and queries. Browsers retain a fragment
+when the destination supplies no replacement. Old extensionless routes map to
+`.html` URLs. GET and HEAD are accepted; form submissions remain direct to
+Formspree. A fixed destination prevents requests from selecting another origin.
+Preserve the address for existing printed parts and firmware.
+
+If initial verification fails, leave the full-site Worker serving the site and
+correct Pages before cutover. After cutover, restore a known-good Pages artifact
+or revert through a PR. Never redirect Pages back to the legacy address while
+the legacy address points to Pages.
+
+GitHub references: [custom workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
+and [publishing configuration](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).

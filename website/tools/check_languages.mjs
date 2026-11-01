@@ -5,13 +5,13 @@ import vm from 'node:vm';
 import worker from '../dist/worker.mjs';
 
 const script = await readFile(new URL('../site/assets/language.js', import.meta.url), 'utf8');
-function visit({ path = '/manual.html#controls', current = 'en', browser = 'en-US', saved, blocked = false }) {
+function visit({ path = '/manual.html#controls', base = '/', current = 'en', browser = 'en-US', saved, blocked = false }) {
   const url = new URL(path, 'https://watchsync.example');
   const links = ['en', 'sv'].map(language => ({
-    href: new URL((language === 'sv' ? '/sv/' : '/') + 'manual.html', url).href,
+    href: new URL(base + (language === 'sv' ? 'sv/' : '') + 'manual.html', url).href,
     dataset: { language },
   }));
-  const navigation = { href: new URL((current === 'sv' ? '/sv/' : '/') + 'diy.html#coil', url).href, dataset: {} };
+  const navigation = { href: new URL(base + (current === 'sv' ? 'sv/' : '') + 'diy.html#coil', url).href, dataset: {} };
   let redirect;
   let ready;
   const storage = {
@@ -24,6 +24,7 @@ function visit({ path = '/manual.html#controls', current = 'en', browser = 'en-U
     localStorage: storage,
     location: { href: url.href, replace(value) { redirect = value; } },
     document: {
+      currentScript: { src: new URL(base + 'assets/language.js', url).href },
       documentElement: { lang: current, dataset: { page: 'manual.html' } },
       addEventListener(event, callback) { ready = callback; },
       querySelectorAll(selector) { return selector === '[data-language]' ? links : [...links, navigation]; },
@@ -52,6 +53,21 @@ assert.equal(switchURL.hash, '#controls');
 const blocked = visit({ path: '/manual.html?lang=en', browser: 'sv', blocked: true });
 assert.equal(blocked.redirect, undefined);
 assert.equal(new URL(blocked.navigation.href).searchParams.get('lang'), 'en');
+
+for (const base of ['/', '/watchsync/']) {
+  const path = base + 'manual.html?source=qr#controls';
+  const automatic = visit({ base, path, browser: 'sv-SE' });
+  assert.equal(automatic.redirect.pathname, base + 'sv/manual.html');
+  assert.equal(automatic.redirect.searchParams.get('source'), 'qr');
+  assert.equal(automatic.redirect.hash, '#controls');
+  assert.equal(visit({ base, path: base + 'sv/manual.html', current: 'sv' }).redirect, undefined);
+  const selected = visit({ base, path: base + 'manual.html?source=qr&lang=en#controls', browser: 'sv', blocked: true });
+  assert.equal(selected.redirect, undefined);
+  assert.equal(new URL(selected.links[1].href).pathname, base + 'sv/manual.html');
+  assert.equal(new URL(selected.links[1].href).searchParams.get('source'), 'qr');
+  assert.equal(new URL(selected.links[1].href).hash, '#controls');
+  assert.equal(new URL(selected.navigation.href).pathname, base + 'diy.html');
+}
 
 for (const [path, status, language] of [['/', 200, 'en'], ['/sv/', 200, 'sv'], ['/sv/manual', 200, 'sv'], ['/missing', 404, 'en'], ['/sv/missing', 404, 'sv']]) {
   const response = await worker.fetch(new Request('https://watchsync.example' + path));

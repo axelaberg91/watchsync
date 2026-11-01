@@ -6,6 +6,7 @@
   const current = document.documentElement.lang;
   const page = document.documentElement.dataset.page;
   const url = new URL(location.href);
+  const siteRoot = new URL('../', document.currentScript.src);
   const explicit = url.searchParams.get('lang');
   const valid = value => value === 'en' || value === 'sv';
   let saved;
@@ -19,7 +20,7 @@
   const initial = current === 'sv' ? 'sv' : /^sv(?:-|$)/i.test(browserLanguage) ? 'sv' : 'en';
   const desired = valid(saved) ? saved : initial;
   if (page && page !== '404.html' && desired !== current) {
-    const target = new URL(desired === 'sv' ? '/sv/' + page : '/' + page, url);
+    const target = new URL((desired === 'sv' ? 'sv/' : '') + page, siteRoot);
     target.search = url.search;
     target.hash = url.hash;
     location.replace(target.href);

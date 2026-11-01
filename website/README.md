@@ -1,57 +1,74 @@
 # Watchsync website
 
-Website source for **https://watchsync.axelaberg91.workers.dev/** in the public
-`axelaberg91/watchsync` repository.
-Original website, guides and assets by axelaberg91: CC BY-NC 4.0.
-The repository's [licensing notice](../LICENSE.md) defines its scope and preserves
-inherited attribution and third-party terms.
+Source for **https://axelaberg91.github.io/watchsync/** in the public
+`axelaberg91/watchsync` repository. Original website, guides and assets by
+axelaberg91: CC BY-NC 4.0. The repository's [licensing notice](../LICENSE.md)
+defines its scope and preserves inherited attribution and third-party terms.
 
-Only `site/` is embedded in the deployed Worker. Firmware, local configuration
-and development files are outside that serving directory. Contact is through the
-Formspree form; no personal support email is rendered. The form's public endpoint
-is not an API credential. Recipient settings remain in the Formspree dashboard.
+## Build and preview
 
-Preview with `python -m http.server 8092 --directory website/site` from the
-repository root. Validate with `python website/tools/validate_site.py`.
+From the repository root, using Python 3 and Node.js:
 
-Production publishing follows PR review and merge to `master`, then Cloudflare
-Workers Builds. Do not publish unmerged content manually. See
-[site-deployment.md](site-deployment.md) for connection and verification steps.
+```sh
+python website/tools/build_pages.py
+python website/tools/check_pages.py
+python website/tools/serve_pages.py
+```
 
-From `website/`, run `npm ci`, `npm run build`, and `npm run check:package`.
-`npm run deploy` is reserved for Cloudflare production builds on `master`.
-No Cloudflare token is stored in this tree.
+Open `http://127.0.0.1:8092/watchsync/`. `site-config.json` defines the public
+address and project base path. The artifact is `website/dist/pages/`; it contains
+only validated static website assets and `.nojekyll`. Source, local configuration,
+release packages and development files are not served. Do not commit generated
+pages or build output.
+
+The language script derives the site root from its asset URL. The Pages builder
+sets project base paths on the English and Swedish 404 pages. Production follows
+PR review and merge to `master`, then the [Pages workflow](../.github/workflows/pages.yml).
+See [site-deployment.md](site-deployment.md) for setup and verification.
+
+## Downloads and contact
 
 Firmware and printable downloads use versioned GitHub Release assets from the
-same repository. Source code and current CAD stay in Git; large downloadable
-files stay in Releases. Keep existing release bytes immutable.
+same repository. Source and current CAD stay in Git; large files stay in Releases.
+Keep existing release bytes immutable.
 
-`migration.json` records the public repository and expected release asset hashes.
-Production deployment verifies the release assets before publishing; preserve this
-check when updating release metadata.
+`migration.json` records the repository and expected release hashes. Deployment
+verifies public release assets before uploading the Pages artifact. Use
+`tools/add_release.py` with a checked local package, date and both language
+summaries to register metadata and hashes. It does not upload assets or publish.
+
+Contact and interest enquiries use Formspree. Recipient settings stay in its
+dashboard; no personal support email is rendered. The public endpoint is not an
+API credential. Never submit a real enquiry as a test.
 
 ## Device interface documentation
 
-The manual, quick start, DIY, troubleshooting and update guides describe the
-current released interface. Both website languages keep device interface names
-in English. Update the guides together when that interface changes. A staged
-package does not make its download available to visitors.
-
-Use `tools/add_release.py` with a checked local release package, date and both
-language summaries to register its metadata and asset hashes. The tool stages
-files; it does not upload assets or publish the website.
+Guides describe the current released interface. Both languages retain English
+device interface names. Update affected guides together when behavior changes.
+A staged package does not make its download available to visitors.
 
 ## Languages
 
 English HTML lives in `site/`; reviewed Swedish copy lives in
 `translations/sv.json`. Validation generates `site/sv/` before checking both
 versions. Never edit generated pages. New visible text requires a dictionary
-entry; device UI names and code examples intentionally retain their original
-English spelling. Update release summaries in both languages in `releases.json`.
+entry; device UI names and code examples retain English spelling. Update release
+summaries in both languages in `releases.json`.
 
-The language links work without JavaScript. With JavaScript, the first visit
-uses the browser's preferred language (`sv` / `sv-*` selects Swedish; all others
-select English). A direct Swedish URL selects Swedish. A valid `?lang=en` or
-`?lang=sv` choice takes precedence and is saved locally when storage is available;
-stored choices override browser preferences. Switching preserves the current page,
-query parameters and fragment. No language data is sent to a separate service.
+Language links work without JavaScript. With JavaScript, the first visit uses
+the browser's preferred language (`sv` / `sv-*` selects Swedish). A direct Swedish
+URL selects Swedish. A valid `?lang=en` or `?lang=sv` choice takes precedence and
+is saved locally when storage is available; stored choices override browser
+preferences. Switching preserves the current page, query parameters and fragment.
+No language data is sent to another service. Preferences saved on the old domain
+cannot automatically transfer to the new origin.
+
+## Legacy address
+
+`src/legacy_redirect.js` preserves old printed QR codes and installed firmware
+help links. It redirects GET and HEAD to the same Pages page, preserves query
+parameters and maps previous extensionless routes to HTML URLs. Its destination
+origin is fixed. Preserve the old address while older devices depend on it.
+
+The previous full-site Worker builder and guarded deploy command remain available
+during the transition. They are not the Pages publication path.

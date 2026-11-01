@@ -11,7 +11,7 @@ includes local OTA. No secrets header or compiled-credential profile is supporte
 
 For interactive development, open the inner `watchsync/watchsync.ino` in Arduino
 IDE. Keep the headers beside the sketch. The outer repository folder may have
-any name. Follow the [website's installation guide](https://watchsync.axelaberg91.workers.dev/diy.html#firmware)
+any name. Follow the [website's installation guide](https://axelaberg91.github.io/watchsync/diy.html#firmware)
 for first USB installation, including flash erasure. Compatible later OTA updates
 retain saved settings. See [OTA.md](OTA.md) for implementation boundaries.
 
