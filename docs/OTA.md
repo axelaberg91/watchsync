@@ -11,9 +11,9 @@ Minimal SPIFFS profile with two application slots of 1,966,080 bytes each.
 An application-only image cannot install or change the partition table.
 
 Firmware is distributed through GitHub Releases with a manifest, checksum and
-release notes. The [website's update guide](https://watchsync.axelaberg91.workers.dev/updates.html)
+release notes. The [website's update guide](https://axelaberg91.github.io/watchsync/updates.html)
 is the user-facing installation guide. Initial USB installation and recovery
-instructions are in the [DIY guide](https://watchsync.axelaberg91.workers.dev/diy.html#firmware).
+instructions are in the [DIY guide](https://axelaberg91.github.io/watchsync/diy.html#firmware).
 
 The page is available at `/update` and the standalone Firmware update section
 through the trusted normal Wi-Fi network. It is unavailable through the setup

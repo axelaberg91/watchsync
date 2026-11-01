@@ -4,7 +4,16 @@ Original release summaries by axelaberg91, CC BY-NC 4.0.
 Inherited firmware and dependencies retain their separate licensing status.
 
 Current downloads and installation instructions are on the
-[Watchsync website](https://watchsync.axelaberg91.workers.dev/updates.html).
+[Watchsync website](https://axelaberg91.github.io/watchsync/updates.html).
+
+## 1.12.3
+
+- Update the website link under Help to the Watchsync GitHub Pages address.
+- Retain the Wi-Fi setup, transmission, saved-settings and update behavior of
+  1.12.2.
+
+See the [1.12.3 release notes](releases/1.12.3.md) for installation requirements
+and verification status.
 
 ## 1.12.2
 

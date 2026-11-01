@@ -28,6 +28,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
+      - name: Check the enclosure QR target
+        run: |
+          python3 -m pip install --disable-pip-version-check qrcode==8.2
+          python3 tools/generate_hardware_qr.py --url https://axelaberg91.github.io/watchsync/ --check
+
       - name: Run logic and scheduling tests
         run: |
           g++ -std=c++17 -O2 tests/logic_test.cpp -o "$RUNNER_TEMP/watchsync-logic-test"

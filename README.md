@@ -2,7 +2,7 @@
 
 A radio time-signal transmitter for the classic **M5Stack Atom Lite (ESP32)**.
 
-**[Website, setup and DIY guide](https://watchsync.axelaberg91.workers.dev/)**
+**[Website, setup and DIY guide](https://axelaberg91.github.io/watchsync/)**
 
 The website is the main place for installation, downloads and support. This
 repository contains the firmware, website, editable enclosure design and checks.
@@ -11,7 +11,7 @@ Versioned firmware and print packages are distributed through GitHub Releases.
 | Directory | Contents |
 | --- | --- |
 | `watchsync/` | Arduino sketch and supporting headers |
-| `website/` | Website source, translations and Cloudflare Worker |
+| `website/` | Static website, translations and legacy-address redirect |
 | `hardware/` | Current editable enclosure design and verification scope |
 | `tests/`, `tools/` | Build, test, packaging and publication checks |
 | `docs/` | Development, release and deployment instructions |

@@ -90,14 +90,15 @@ releases remain archived. Do not recreate a separate public file mirror.
 
 ## Website publication
 
-- Publish production only from reviewed, merged `master` through Cloudflare
-  Workers Builds. Keep the existing Worker and website address.
+- Publish the website only from reviewed, merged `master` through GitHub Actions
+  to GitHub Pages at `https://axelaberg91.github.io/watchsync/`.
 - Do not manually upload feature branches or unmerged PRs to production. Keep
   preview builds disabled unless separately requested.
-- Keep one production build trigger, rooted at `website`, with the existing
-  `website/**` watch paths. Read the deployment document before changing this.
-- Run website validation, language checks and a Worker packaging dry run before
-  opening a deployment-related PR. Keep the release verification gate enabled.
+- Keep the former Cloudflare Worker only as a redirect for existing printed QR
+  codes and firmware links. Change it only from reviewed, merged source after
+  verifying Pages. Disable its former website build trigger after cutover.
+- Run website validation, language and project-path checks before opening a
+  deployment-related PR. Keep the release verification gate enabled.
 - Keep credentials in the platform's secret store. Do not commit `.env`,
   `.dev.vars`, tokens, logs, generated pages, dependency trees or build outputs.
 - After an authorized merge and deployment, verify the deployed commit and the
