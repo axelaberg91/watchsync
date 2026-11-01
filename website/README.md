@@ -32,7 +32,7 @@ Firmware and printable downloads use versioned GitHub Release assets from the
 same repository. Source and current CAD stay in Git; large files stay in Releases.
 Keep existing release bytes immutable.
 
-`migration.json` records the repository and expected release hashes. Deployment
+`publication.json` records the repository and expected release hashes. Deployment
 verifies public release assets before uploading the Pages artifact. Use
 `tools/add_release.py` with a checked local package, date and both language
 summaries to register metadata and hashes. It does not upload assets or publish.
@@ -70,5 +70,9 @@ help links. It redirects GET and HEAD to the same Pages page, preserves query
 parameters and maps previous extensionless routes to HTML URLs. Its destination
 origin is fixed. Preserve the old address while older devices depend on it.
 
-The previous full-site Worker builder and guarded deploy command remain available
-during the transition. They are not the Pages publication path.
+Maintain the redirect separately from Pages: validate the merged
+`src/legacy_redirect.js` with `node website/tools/check_redirect.mjs`, then update
+the existing Cloudflare Worker through its authenticated API or dashboard.
+Preserve its hostname, fixed destination and disabled preview URLs. Keep platform
+credentials outside the repository. The redirect has no automatic source-build
+trigger, and no Cloudflare dependency is required to build the website.

@@ -26,7 +26,7 @@ assert type(m['size']) is int and 4096 <= m['size'] <= 1966080
 assert a.summary.strip() and a.summary_sv.strip(), 'Both release summaries are required'
 binary = (a.manifest.parent / m['file']).read_bytes()
 assert len(binary) == m['size'] and hashlib.sha256(binary).hexdigest() == m['sha256'], 'Application does not match its manifest'
-config_path = SITE.parent / 'migration.json'
+config_path = SITE.parent / 'publication.json'
 config = json.loads(config_path.read_text(encoding='utf-8'))
 assert m['version'] == config['firmwareVersion'], 'Package does not match the planned firmware release'
 repository = config['repository']

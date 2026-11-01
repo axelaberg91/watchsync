@@ -3,14 +3,11 @@
   "private": true,
   "license": "CC-BY-NC-4.0",
   "scripts": {
-    "build": "python3 tools/build_worker.py",
+    "build": "python3 tools/build_pages.py",
     "build:pages": "python3 tools/build_pages.py",
     "check:pages": "python3 tools/check_pages.py",
-    "deploy": "node tools/deploy.mjs",
-    "check:package": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "check:package": "python3 tools/check_pages.py",
+    "check:languages": "node tools/check_languages.mjs",
     "check:publication": "node tools/verify_release_assets.mjs"
-  },
-  "devDependencies": {
-    "wrangler": "4.154.0"
   }
 }

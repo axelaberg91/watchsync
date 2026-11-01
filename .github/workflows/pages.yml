@@ -37,6 +37,7 @@ jobs:
         run: |
           python website/tools/build_pages.py
           python website/tools/check_pages.py
+          node website/tools/check_languages.mjs
           node website/tools/check_releases.mjs
           node website/tools/check_release_gate.mjs
           node website/tools/check_redirect.mjs

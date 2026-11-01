@@ -10,11 +10,11 @@ const requireValue = (condition, message) => { if (!condition) throw new Error(m
 export async function verifyReleaseAssets(config, fetcher = fetch, catalogReader = async () =>
   JSON.parse(await readFile(new URL('../site/releases.json', import.meta.url), 'utf8'))) {
   requireValue(config.schemaVersion === 1 && config.state === 'ready' && !config.legacy,
-    'Publication is staged. Complete release verification and remove legacy migration data before production deployment.');
+    'Publication is not ready. Verify published releases before production deployment.');
   requireValue(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(config.repository), 'Invalid publication repository');
   requireValue(config.firmware?.version === config.firmwareVersion && config.firmware.tag === 'v' + config.firmwareVersion,
     'Firmware package has not been registered');
-  requireValue(config.hardware?.tag === 'hardware-v14', 'Expected hardware release is missing');
+  requireValue(/^hardware-v[1-9]\d*$/.test(config.hardware?.tag), 'Invalid hardware release tag');
   const checked = [];
   for (const group of [config.firmware, config.hardware]) {
     requireValue(Array.isArray(group.assets) && group.assets.length > 0, 'Expected release assets are missing');
@@ -66,7 +66,7 @@ export async function verifyReleaseAssets(config, fetcher = fetch, catalogReader
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
-    const config = JSON.parse(await readFile(new URL('../migration.json', import.meta.url), 'utf8'));
+    const config = JSON.parse(await readFile(new URL('../publication.json', import.meta.url), 'utf8'));
     const assets = await verifyReleaseAssets(config);
     console.log(`Verified ${assets.length} public release assets and the website release catalog.`);
   } catch (error) {
