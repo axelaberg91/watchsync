@@ -24,6 +24,11 @@ GENERATED_DIRS = {'.git', 'node_modules', '__pycache__', '.wrangler', 'dist'}
 PRIVATE_NAMES = {'secret.h', 'secrets.h', 'secrets_example.h', '.env', '.dev.vars',
                  '.ds_store', 'thumbs.db', 'credentials', 'id_rsa', 'id_ed25519'}
 RELEASE_SUFFIXES = {'.bin', '.elf', '.hex', '.map', '.log', '.stl', '.3mf', '.zip', '.bak'}
+CURRENT_HARDWARE_STLS = {
+    'hardware/watchsync-base.stl',
+    'hardware/watchsync-lid.stl',
+    'hardware/watchsync-bobbin.stl',
+}
 PATTERNS = {
     'private key': rb'-----BEGIN (?:RSA |EC |OPENSSH |DSA |ENCRYPTED |PGP )?PRIVATE KEY(?: BLOCK)?-----',
     'GitHub token': rb'\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})\b',
@@ -149,7 +154,7 @@ class Review:
             self.fail(label, 'private/local configuration file')
         if not artifact and any(part in GENERATED_DIRS - {'.git'} for part in Path(label).parts):
             self.fail(label, 'generated dependencies or cache belong outside Git')
-        if not artifact and path.suffix.lower() in RELEASE_SUFFIXES:
+        if not artifact and path.suffix.lower() in RELEASE_SUFFIXES and label not in CURRENT_HARDWARE_STLS:
             self.fail(label, 'release or generated output belongs outside Git')
         try:
             if path.stat().st_size > MAX_FILE:

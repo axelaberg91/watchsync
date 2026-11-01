@@ -7,9 +7,17 @@ which retains its [BSD/MIT licensing notices](https://github.com/lincolnloop/pyt
 
 `watchsync-enclosure.scad` is the current editable enclosure model. The bottom
 plate is revision v15; the upper shell and coil former retain their existing
-geometry. Select a part using the model's `part` parameter. Finished STL files
-and their checksums are distributed as the versioned `hardware-v15` release
-package, rather than duplicated in the source tree.
+geometry. Select a part using the model's `part` parameter. The current printable
+parts are also available directly in this directory:
+
+- [Bottom plate](watchsync-base.stl)
+- [Upper shell](watchsync-lid.stl)
+- [Coil former](watchsync-bobbin.stl)
+
+These are byte-for-byte copies of the individual assets in
+[hardware-v15](https://github.com/axelaberg91/watchsync/releases/tag/hardware-v15).
+Use that release's `SHA256SUMS` to check them. Older revisions and the combined
+ZIP package remain available through versioned Releases.
 
 The release must contain `watchsync-base.stl`, `watchsync-lid.stl` and
 `watchsync-bobbin.stl`. Preserve the published files and checksums when preparing
