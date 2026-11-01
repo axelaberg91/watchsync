@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "state": "ready",
+  "repository": "axelaberg91/watchsync",
+  "firmwareVersion": "1.12.3",
+  "firmware": {
+    "tag": "v1.12.3",
+    "assets": [
+      {
+        "name": "CC-BY-NC-4.0.txt",
+        "size": 19347,
+        "sha256": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0"
+      },
+      {
+        "name": "LICENSE.md",
+        "size": 3778,
+        "sha256": "3878971fe39c59922f5de163ccbbc3f738041c613623316d3402e524482a80bd"
+      },
+      {
+        "name": "manifest.json",
+        "size": 410,
+        "sha256": "0dfa5f3a2b827ec9d1195ee61c1c2e311e30ffb28fe717d19e32beab9489bc6e"
+      },
+      {
+        "name": "RELEASE_NOTES.md",
+        "size": 1790,
+        "sha256": "78c3318dbfd2376cc106288463924aec0602cc6513821d7de63e308906889cd1"
+      },
+      {
+        "name": "SHA256SUMS",
+        "size": 87,
+        "sha256": "e91acc1e39471fb1d4fef3c07964fa6a9a5554f90e36a431654cd8d7258010ba"
+      },
+      {
+        "name": "watchsync-1.12.3.bin",
+        "size": 1163248,
+        "sha256": "def085eec1c916f0daa7be342b3b906337664f0d9cb2c4b6d33f4632c749a8fc"
+      }
+    ],
+    "version": "1.12.3"
+  },
+  "hardware": {
+    "tag": "hardware-v15",
+    "assets": [
+      {
+        "name": "CC-BY-NC-4.0.txt",
+        "size": 19347,
+        "sha256": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0"
+      },
+      {
+        "name": "LICENSE.md",
+        "size": 3778,
+        "sha256": "3878971fe39c59922f5de163ccbbc3f738041c613623316d3402e524482a80bd"
+      },
+      {
+        "name": "manifest.json",
+        "size": 1310,
+        "sha256": "42c52ef811634a32bf1813621787232394eb4016d52bf75a48a17beba58b47b9"
+      },
+      {
+        "name": "RELEASE_NOTES.md",
+        "size": 1178,
+        "sha256": "99161cef3f77cee52ac5d0e5f811a4330109dcaacc642b826e352acfec253c9a"
+      },
+      {
+        "name": "SHA256SUMS",
+        "size": 772,
+        "sha256": "fd217332db0ff8f951f92c83dd7f68524bf8653b38f6aaf6e62d6d85da76ec10"
+      },
+      {
+        "name": "watchsync-base.stl",
+        "size": 1899184,
+        "sha256": "a9bfbde1c786a4b772ff1d7d6c8904ee1e9cea07cfbc6d723d0493ded3f5a830"
+      },
+      {
+        "name": "watchsync-bobbin.stl",
+        "size": 118084,
+        "sha256": "3870dadf463d2ced89bcd7519601e0f0d3cafa1ab84285e603fb9f525edcaba6"
+      },
+      {
+        "name": "watchsync-enclosure.scad",
+        "size": 19186,
+        "sha256": "cfea1f0801ff16e8401749475828c1c73b31bf0ca0784605201e413d1f69d21f"
+      },
+      {
+        "name": "watchsync-hardware-v15.zip",
+        "size": 604633,
+        "sha256": "f74034747def0c2a17afdac4c95e92c75431a08180cc2dbcfc44e339df447cac"
+      },
+      {
+        "name": "watchsync-lid.stl",
+        "size": 545184,
+        "sha256": "49c7923bc632c0d79bab3e28402e75348f222d6fe5ea34c8755b93c92a57f4a1"
+      }
+    ]
+  }
+}

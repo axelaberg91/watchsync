@@ -9,7 +9,7 @@ import re
 from build_translations import generate
 
 SITE = Path(__file__).resolve().parents[1] / 'site'
-PUBLICATION = json.loads((SITE.parent / 'migration.json').read_text(encoding='utf-8'))
+PUBLICATION = json.loads((SITE.parent / 'publication.json').read_text(encoding='utf-8'))
 
 def release_url(value, version, binary):
     url = urlsplit(value)

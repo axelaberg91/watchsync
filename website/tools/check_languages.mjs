@@ -2,7 +2,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
-import worker from '../dist/worker.mjs';
 
 const script = await readFile(new URL('../site/assets/language.js', import.meta.url), 'utf8');
 function visit({ path = '/manual.html#controls', base = '/', current = 'en', browser = 'en-US', saved, blocked = false }) {
@@ -69,11 +68,4 @@ for (const base of ['/', '/watchsync/']) {
   assert.equal(new URL(selected.navigation.href).pathname, base + 'diy.html');
 }
 
-for (const [path, status, language] of [['/', 200, 'en'], ['/sv/', 200, 'sv'], ['/sv/manual', 200, 'sv'], ['/missing', 404, 'en'], ['/sv/missing', 404, 'sv']]) {
-  const response = await worker.fetch(new Request('https://watchsync.example' + path));
-  assert.equal(response.status, status);
-  assert.match(await response.text(), new RegExp('<html lang="' + language + '"'));
-}
-const head = await worker.fetch(new Request('https://watchsync.example/sv/', { method: 'HEAD' }));
-assert.equal(await head.text(), '');
-console.log('Language selection, saved choices, blocked storage, links and localized Worker routes passed.');
+console.log('Language selection, saved choices, blocked storage and root/project-path links passed.');

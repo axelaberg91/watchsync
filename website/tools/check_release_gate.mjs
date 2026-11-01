@@ -6,6 +6,7 @@ import { verifyReleaseAssets } from './verify_release_assets.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const version = '1.12.2';
+const hardwareTag = 'hardware-v15';
 const filename = `watchsync-${version}.bin`;
 const application = Buffer.from('credential-free application fixture');
 const manifest = { version, file: filename, kind: 'application-only', containsCompiledWifiCredentials: false,
@@ -17,14 +18,14 @@ const hardwareFiles = new Map(['base', 'lid', 'bobbin'].map(part => [`watchsync-
 const metadata = files => [...files].map(([name, bytes]) => ({ name, size: bytes.length, sha256: hash(bytes) }));
 const config = { schemaVersion: 1, state: 'ready', repository: 'axelaberg91/watchsync', firmwareVersion: version,
   firmware: { version, tag: 'v' + version, assets: metadata(firmwareFiles) },
-  hardware: { tag: 'hardware-v14', assets: metadata(hardwareFiles) } };
+  hardware: { tag: hardwareTag, assets: metadata(hardwareFiles) } };
 const catalog = { repository: config.repository, releases: [{ version, sha256: manifest.sha256, size: application.length }] };
-function network({ missing = false, altered = false, draft = false, wrongURL = false } = {}) {
+function network({ missing = false, altered = false, draft = false, wrongURL = false, wrongTag = false } = {}) {
   return async value => {
     const url = new URL(value);
-    const tag = url.pathname.includes('/hardware-v14') ? 'hardware-v14' : 'v' + version;
-    const files = tag === 'hardware-v14' ? hardwareFiles : firmwareFiles;
-    if (url.hostname === 'api.github.com') return { ok: !missing, json: async () => ({ tag_name: tag, draft, prerelease: false,
+    const tag = url.pathname.includes('/' + hardwareTag) ? hardwareTag : 'v' + version;
+    const files = tag === hardwareTag ? hardwareFiles : firmwareFiles;
+    if (url.hostname === 'api.github.com') return { ok: !missing, json: async () => ({ tag_name: wrongTag ? 'unexpected-tag' : tag, draft, prerelease: false,
       assets: [...files].map(([name, bytes]) => ({ name, size: bytes.length,
         browser_download_url: `https://${wrongURL ? 'example.invalid' : 'github.com'}/${config.repository}/releases/download/${tag}/${name}` })) }) };
     const bytes = altered ? Buffer.from('altered') : files.get(url.pathname.split('/').pop());
@@ -32,11 +33,18 @@ function network({ missing = false, altered = false, draft = false, wrongURL = f
   };
 }
 assert.equal((await verifyReleaseAssets(config, network(), async () => catalog)).length, 6);
-for (const change of [{ missing: true }, { altered: true }, { draft: true }, { wrongURL: true }])
+for (const change of [{ missing: true }, { altered: true }, { draft: true }, { wrongURL: true }, { wrongTag: true }])
   await assert.rejects(verifyReleaseAssets(config, network(change), async () => catalog));
 let requested = false;
 await assert.rejects(verifyReleaseAssets({ ...config, state: 'staged' }, async () => { requested = true; }));
 assert.equal(requested, false, 'Staged publication must fail before any network access');
+for (const tag of ['hardware-v0', 'hardware-v015', 'hardware-v15/..', 'hardware-v15?x', 'v15', 'hardware-v15-beta', null]) {
+  let accessedNetwork = false;
+  await assert.rejects(verifyReleaseAssets({ ...config, hardware: { ...config.hardware, tag } }, async () => {
+    accessedNetwork = true;
+  }), /Invalid hardware release tag/);
+  assert.equal(accessedNetwork, false, 'Invalid hardware tags must fail before network access');
+}
 await assert.rejects(verifyReleaseAssets({ ...config, legacy: {} }, network(), async () => catalog));
 await assert.rejects(verifyReleaseAssets(config, network(), async () => ({ ...catalog, releases: [] })));
-console.log('Publication gate rejects staged, missing, draft, altered and mismatched assets and catalog data.');
+console.log('Publication gate verifies versioned hardware and rejects invalid tags before network access, staged releases and mismatched assets.');

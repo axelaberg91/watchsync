@@ -24,7 +24,8 @@ CAD, dependencies and local files remain outside it.
 Static-path checks resolve links and anchors beneath `/watchsync/`, including
 404 base paths. PR checks also exercise language selection, saved preferences,
 blocked storage, query and fragment preservation, release links and legacy
-redirects. The Worker dry run remains a transition compatibility check.
+redirects. The website needs only Python and Node.js; no external build packages
+or Cloudflare toolchain are installed.
 
 Before artifact upload, `node tools/verify_release_assets.mjs` from `website/`
 verifies public readability, release state, filenames, sizes and SHA-256 hashes.
@@ -41,9 +42,9 @@ node website/tools/check_release_gate.mjs
 node website/tools/check_redirect.mjs
 ```
 
-For transition Worker checks, run `npm ci`, `npm run build`,
-`npm run check:package` and `node tools/check_languages.mjs` from `website/`.
-Pages itself does not require Wrangler.
+Run `node website/tools/check_languages.mjs` to check language behavior at both
+the project path and a root mount. The optional npm scripts wrap the same Python
+and Node.js commands; no dependency installation is needed.
 
 ## Production verification
 
@@ -52,17 +53,24 @@ languages, guides, direct URLs, language controls, mobile and desktop navigation
 images, unknown-path 404 behavior and downloads. Inspect form endpoint, fields
 and language values without submitting an enquiry. Check publication file scope.
 
-GitHub Pages owns response headers, caching and error-page selection. The old
-Worker's custom headers and localized error routing do not carry over. Missing
+GitHub Pages owns response headers, caching and error-page selection. Missing
 paths use the English root `404.html`; the Swedish 404 remains directly available.
 Use `.html` URLs for canonical page links.
 
 ## Old-address compatibility
 
-The old `watchsync` Cloudflare Worker keeps its hostname as a small redirect
-using `src/legacy_redirect.js`. Leave the full site in place until Pages passes
-live verification. Disable the former automatic full-site build trigger before
-activating the redirect so later pushes cannot restore the old site over it.
+The `watchsync` Cloudflare Worker keeps its original hostname as a small redirect
+using `src/legacy_redirect.js`. It serves no website assets and has no automatic
+source-build trigger. Its hostname remains available for installed firmware and
+already printed QR codes.
+
+To update it, review and merge the source change, run
+`node website/tools/check_redirect.mjs`, and publish that exact source to the
+existing Worker using Cloudflare's authenticated API or dashboard. Preserve its
+hostname and disabled preview URLs. Keep credentials in the platform's secret
+store, never in repository files. Verify the deployed source and GET/HEAD
+redirects after publishing. Test query strings and English/Swedish paths without
+submitting forms.
 
 The redirect preserves page/language paths and queries. Browsers retain a fragment
 when the destination supplies no replacement. Old extensionless routes map to
@@ -70,10 +78,9 @@ when the destination supplies no replacement. Old extensionless routes map to
 Formspree. A fixed destination prevents requests from selecting another origin.
 Preserve the address for existing printed parts and firmware.
 
-If initial verification fails, leave the full-site Worker serving the site and
-correct Pages before cutover. After cutover, restore a known-good Pages artifact
-or revert through a PR. Never redirect Pages back to the legacy address while
-the legacy address points to Pages.
+For rollback, restore a known-good Pages artifact or revert through a PR. Never
+redirect Pages back to the legacy address while the legacy address points to
+Pages.
 
 GitHub references: [custom workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
 and [publishing configuration](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
