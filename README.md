@@ -25,7 +25,10 @@ See the [firmware changelog](docs/CHANGELOG.md),
 [development](docs/DEVELOPMENT.md), [firmware updates](docs/OTA.md) and
 [website deployment](website/site-deployment.md).
 
+Watchsync builds on [clocksync by Tan Vachiramon](https://github.com/tanvach/clocksync)
+and [nisejjy by SASAKI Taroh](https://github.com/tarohs/nisejjy). Thank you to both
+authors for the firmware foundation.
+
 Original contributions by **axelaberg91** use **CC BY-NC 4.0**. Inherited firmware
-from [Tan Vachiramon](https://github.com/tanvach/clocksync) and
-[SASAKI Taroh](https://github.com/tarohs/nisejjy) is not relicensed; its licensing
-status remains unresolved. See [LICENSE.md](LICENSE.md).
+is not relicensed; its licensing status remains unresolved. See
+[LICENSE.md](LICENSE.md).

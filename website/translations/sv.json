@@ -542,5 +542,9 @@
   "For example, 1.12.3": "Till exempel 1.12.3",
   "Download the current firmware and read its release notes on GitHub Releases.": "Ladda ned aktuell firmware och läs versionsinformationen på GitHub Releases.",
   "Open firmware releases": "Öppna firmwareversioner",
-  "JavaScript is disabled. Open GitHub Releases for firmware downloads and release notes.": "JavaScript är avstängt. Öppna GitHub Releases för nedladdningar av firmware och versionsinformation."
+  "JavaScript is disabled. Open GitHub Releases for firmware downloads and release notes.": "JavaScript är avstängt. Öppna GitHub Releases för nedladdningar av firmware och versionsinformation.",
+  "Watchsync builds on": "Watchsync bygger vidare på",
+  "clocksync by Tan Vachiramon": "clocksync av Tan Vachiramon",
+  "nisejjy by SASAKI Taroh": "nisejjy av SASAKI Taroh",
+  ". Thanks to both authors for the firmware foundation.": ". Tack till båda upphovsmännen för grunden till firmwaren."
 }
