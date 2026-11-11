@@ -34,6 +34,8 @@ int main() {
   fakeNVS::data["watchsync"]["timesource"].pop_back();
   NtpConfiguration truncated; truncated.load(); assert(truncated.error());
   assert(truncated.save(NtpRecord()));
+  assert(!truncated.record().custom && !truncated.error());
+  assert(truncated.save(custom) && truncated.record().custom);
   DeviceConfiguration device; assert(device.begin()); assert(device.requestFactoryReset());
   DeviceConfiguration reset; assert(reset.begin());
   NtpConfiguration resetTime; resetTime.load(); assert(!resetTime.error() && !resetTime.record().custom);

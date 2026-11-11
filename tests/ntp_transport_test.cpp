@@ -34,5 +34,12 @@ int main() {
   assert(transport.configure(&local)); fakeNtp::answer(0, 666);
   assert(fakeNtp::enabled && fakeNtp::servers[0].value == 666);
   assert(transport.configure(nullptr)); assert(!fakeNtp::enabled);
+  assert(transport.retryDns() && !fakeNtp::enabled && fakeNtp::pending.empty());
+  fakeNtp::dnsResult = ERR_OK;
+  strcpy(local.primary, "192.0.2.12");
+  assert(transport.configure(&local) && fakeNtp::enabled && !transport.unresolved());
+  assert(fakeNtp::servers[0].value == 777 && !fakeNtp::servers[1].value);
+  fakeNtp::dnsResult = -16;
+  assert(transport.configure(&local) && !fakeNtp::enabled && transport.unresolved());
   puts("PASS NTP transport: serialized stop, obsolete DNS rejection, custom-only endpoints, DNS failure, secondary server and bounded pending lookups");
 }

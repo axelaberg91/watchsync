@@ -3,6 +3,18 @@
   "repository": "axelaberg91/watchsync",
   "releases": [
     {
+      "version": "1.13.0",
+      "target": "M5 Atom Lite (classic ESP32), GPIO25",
+      "partitionScheme": "min_spiffs",
+      "size": 1171712,
+      "sha256": "843d9ba60702b9e38d2e381f112276300169573c6ae17845157543d0f63a414c",
+      "date": "2026-11-11",
+      "summary": "Choose default or custom NTP servers, including a local server without internet access. Server changes require a fresh time update; saved servers survive OTA and restarts. Standard Atom Lite GPIO25 image.",
+      "summarySv": "V\u00e4lj standardservrar eller egna NTP-servrar, inklusive en lokal server utan internet\u00e5tkomst. Serverbyte kr\u00e4ver en ny tidsuppdatering; sparade servrar beh\u00e5lls vid OTA och omstart. Standardversion f\u00f6r Atom Lite GPIO25.",
+      "binaryUrl": "https://github.com/axelaberg91/watchsync/releases/download/v1.13.0/watchsync-1.13.0.bin",
+      "notesUrl": "https://github.com/axelaberg91/watchsync/releases/tag/v1.13.0"
+    },
+    {
       "version": "1.12.3",
       "target": "M5 Atom Lite (classic ESP32), GPIO25",
       "partitionScheme": "min_spiffs",
@@ -10,7 +22,7 @@
       "sha256": "def085eec1c916f0daa7be342b3b906337664f0d9cb2c4b6d33f4632c749a8fc",
       "date": "2026-11-01",
       "summary": "Updated website link under Help. Device settings and transmission are unchanged.",
-      "summarySv": "Uppdaterad webbplatslänk under Help. Enhetens inställningar och sändning är oförändrade.",
+      "summarySv": "Uppdaterad webbplatsl\u00e4nk under Help. Enhetens inst\u00e4llningar och s\u00e4ndning \u00e4r of\u00f6r\u00e4ndrade.",
       "binaryUrl": "https://github.com/axelaberg91/watchsync/releases/download/v1.12.3/watchsync-1.12.3.bin",
       "notesUrl": "https://github.com/axelaberg91/watchsync/releases/tag/v1.12.3"
     },
@@ -22,7 +34,7 @@
       "sha256": "f7d36a22a085de33ba4d3b6cc4a33e9756b71771897806ed70b197e67aa800dd",
       "date": "2026-10-29",
       "summary": "Wi-Fi setup, scheduled transmission and local firmware updates.",
-      "summarySv": "Wi-Fi-inställning, schemalagd sändning och lokala firmwareuppdateringar.",
+      "summarySv": "Wi-Fi-inst\u00e4llning, schemalagd s\u00e4ndning och lokala firmwareuppdateringar.",
       "binaryUrl": "https://github.com/axelaberg91/watchsync/releases/download/v1.12.2/watchsync-1.12.2.bin",
       "notesUrl": "https://github.com/axelaberg91/watchsync/releases/tag/v1.12.2"
     }

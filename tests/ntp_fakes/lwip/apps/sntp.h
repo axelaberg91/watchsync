@@ -20,6 +20,7 @@ inline uint32_t ip4_addr_get_u32(const ip_addr_t *ip) { return ip->value; }
 constexpr uint32_t IPADDR_BROADCAST = 0xffffffff;
 namespace fakeNtp {
 inline bool enabled = false, dhcp = true;
+inline err_t dnsResult = ERR_INPROGRESS;
 inline ip_addr_t servers[3] = {};
 inline std::function<void()> beforeStop;
 using Callback = void (*)(const char *, const ip_addr_t *, void *);
