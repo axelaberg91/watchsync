@@ -24,20 +24,27 @@ class Element {
   focus() {}
   select() {}
 }
-async function page(html, status, wifiState = 'idle') {
+async function page(html, status, wifiState = 'idle', ntpFailure = false) {
   const elements = new Map([...html.matchAll(/<[^>]+\bid="([^"]+)"[^>]*>/g)].map(m => [m[1], new Element(m[0])]));
   const timers = new Map(), calls = []; let timerId = 0;
   const network = {ssid:'Example network',rssi:-45,open:false};
   const document = {hidden:false, getElementById(id) { assert(elements.has(id), 'Missing UI element: '+id); return elements.get(id); }, createElement() { return new Element(); }, addEventListener() {}};
   const context = vm.createContext({document, URLSearchParams, AbortController, performance:{now:()=>0},
     setTimeout(fn) { timers.set(++timerId, fn); return timerId; }, clearTimeout(id) { timers.delete(id); },
-    fetch: async (url, options) => { calls.push({url, options}); return {ok:true, headers:{get:()=> url==='/api/diagnostics'?'text/plain':'application/json'}, text:async()=> 'watchsync test\nWi-Fi: connected\nConfigured NTP servers: pool.ntp.org, time.nist.gov', json:async()=> {
+    fetch: async (url, options) => { calls.push({url, options}); return {ok:!(url==='/api/ntp'&&ntpFailure),status:url==='/api/ntp'&&ntpFailure?500:200, headers:{get:()=> url==='/api/diagnostics'?'text/plain':'application/json'}, text:async()=> 'watchsync test\nWi-Fi: connected\nConfigured NTP servers: pool.ntp.org, time.nist.gov', json:async()=> {
       if (url==='/api/status') return status;
       if (url==='/api/wifi') return {token:'setup-token',state:wifiState,ssid:'',ip:'192.0.2.12',message:'Connection status',hostname:status.hostname,nextHostname:status.nextHostname};
       if (url==='/api/wifi/networks') return {state:'ready',networks:[network]};
       if (url==='/api/wifi/next') return {token:'settings-token',canEdit:true,currentSSID:'Example network',nextSSID:'Example network'};
       if (url==='/api/device') { status={...status,nextHostname:new URLSearchParams(options.body).get('hostname'),hostnamePending:true}; return status; }
       if (url==='/api/device/reset') return {message:'Factory reset saved.'};
+      if (url==='/api/ntp') {
+        if(ntpFailure)return {message:'Could not save time servers. Previous settings remain active.'};
+        const form=new URLSearchParams(options.body),custom=form.get('mode')==='custom';
+        status={...status,ntpCustom:custom,ntpPrimary:custom?form.get('primary'):'pool.ntp.org',ntpSecondary:custom?form.get('secondary'):'time.nist.gov',ntpConfigError:false,syncPending:true};
+        status.ntpServers=status.ntpPrimary+(status.ntpSecondary?', '+status.ntpSecondary:'');
+        return status;
+      }
       throw new Error('Unexpected request '+url);
     }}; }});
   context.window = context;
@@ -151,6 +158,34 @@ async function main() {
   assert.equal(diagnostics.elements.get('diagnosticsText').hidden,false);
   assert(diagnostics.elements.get('diagnosticsText').value.includes('pool.ntp.org'));
   assert(diagnostics.elements.get('diagnosticsFeedback').textContent.includes('copy the report'));
+  const ntp = await page(ui,{...base,ntpPrimary:'pool.ntp.org',ntpSecondary:'time.nist.gov'});
+  assert(ntp.elements.get('ntpFields').hidden);
+  ntp.elements.get('ntpMode').value='custom'; ntp.elements.get('ntpMode').listeners.change();
+  assert(!ntp.elements.get('ntpFields').hidden && ntp.elements.get('ntpPrimary').required);
+  for (const bad of ['http://ntp.lan','ntp:123','999.0.0.1','01.2.3.4','127.0.0.1','::1','-ntp.lan','a'.repeat(64)+'.lan']) {
+    ntp.elements.get('ntpPrimary').value=bad;
+    ntp.elements.get('ntpForm').listeners.submit({preventDefault(){}}); await ntp.settle();
+    assert(!ntp.calls.some(call=>call.url==='/api/ntp'),bad);
+  }
+  ntp.elements.get('ntpPrimary').value='  NTP.LAN  ';ntp.elements.get('ntpSecondary').value='';
+  ntp.elements.get('ntpForm').listeners.submit({preventDefault(){}}); await ntp.settle();
+  const timeSave=ntp.calls.find(call=>call.url==='/api/ntp'),timeForm=new URLSearchParams(timeSave.options.body);
+  assert.equal(timeForm.get('primary'),'ntp.lan');assert.equal(timeForm.get('secondary'),'');
+  assert.equal(timeForm.get('mode'),'custom');assert.equal(timeForm.get('token'),'status-token');
+  assert.equal(ntp.elements.get('ntpServers').textContent,'ntp.lan');
+  assert(ntp.elements.get('ntpFeedback').textContent.includes('Waiting'));
+  const beforeDefaults=ntp.calls.filter(call=>call.url==='/api/ntp').length;
+  ntp.elements.get('ntpDefaults').listeners.click();await ntp.settle();
+  assert.equal(ntp.calls.filter(call=>call.url==='/api/ntp').length,beforeDefaults,'Restore defaults does not save without submission');
+  ntp.elements.get('ntpForm').listeners.submit({preventDefault(){}}); await ntp.settle();
+  assert.equal(new URLSearchParams(ntp.calls.filter(call=>call.url==='/api/ntp').at(-1).options.body).get('mode'),'default');
+  const brokenTime=await page(ui,{...base,ntpConfigError:true});
+  assert(brokenTime.elements.get('ntpFeedback').textContent.includes('invalid'));
+  const failedTime=await page(ui,{...base,ntpCustom:true,ntpPrimary:'old.lan',ntpSecondary:''},'idle',true);
+  failedTime.elements.get('ntpPrimary').value='new.lan';failedTime.elements.get('ntpForm').listeners.input();
+  failedTime.elements.get('ntpForm').listeners.submit({preventDefault(){}});await failedTime.settle();
+  assert.equal(failedTime.elements.get('ntpPrimary').value,'new.lan','Failed writes and polling preserve unsaved edits');
+  assert(failedTime.elements.get('feedback').textContent.includes('Previous settings remain active'));
   const setupCache=await page(setup,base);
   assert(setupCache.calls.filter(c=>c.url==='/api/wifi/networks').every(c=>!c.options.method||c.options.method==='GET'));
   assert(!ui.includes('<h1>Transmitter</h1>'));

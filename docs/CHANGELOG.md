@@ -6,6 +6,19 @@ Inherited firmware and dependencies retain their separate licensing status.
 Current downloads and installation instructions are on the
 [Watchsync website](https://axelaberg91.github.io/watchsync/updates.html).
 
+## 1.13.0
+
+- Add default or custom NTP servers under Network settings → Time source.
+  Use a primary and optional secondary hostname or IPv4 address, including
+  local servers without internet access. Custom mode has no public fallback.
+- Save and apply without restarting. Changing servers requires a fresh time
+  update before transmission resumes. Saved servers survive compatible OTA
+  updates and restarts; factory reset restores defaults.
+- Show configured sources and configuration errors in status and diagnostics.
+
+See the [1.13.0 release notes](releases/1.13.0.md) for installation requirements
+and verification status.
+
 ## 1.12.3
 
 - Update the website link under Help to the Watchsync GitHub Pages address.

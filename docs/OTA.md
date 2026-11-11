@@ -21,8 +21,8 @@ AP or captive-portal browser. Finish network scans and apply pending next-startu
 network settings before starting an update.
 
 OTA replaces the application and retains compatible saved Wi-Fi, hostname and
-device settings. A temporary one-hour pass ends on restart. The radio requires
-a fresh confirmed internet-time update before transmission resumes.
+device settings, including custom NTP servers from 1.13.0 onward. A temporary one-hour pass ends on restart. The radio requires
+a fresh confirmed NTP time update from the saved sources before transmission resumes.
 
 ## Request and image checks
 

@@ -17,6 +17,7 @@ GIT = ["git", "-c", f"safe.directory={ROOT.as_posix()}", "-C", str(ROOT)]
 FQBN = "m5stack:esp32:m5stack_atom:PartitionScheme=min_spiffs"
 SOURCE_FILES = (
     "watchsync.ino", "time_policy.h", "transmission_policy.h", "time_zones.h",
+    "ntp_config.h", "ntp_transport.h", "ntp_transport.cpp",
     "web_ui.h", "wifi_config.h", "device_config.h", "wifi_picker.h",
     "ota_policy.h", "firmware_update.h", "ota_ui.h",
 )
