@@ -82,3 +82,25 @@ duplicated here.
 References: [Arduino CLI compile](https://docs.arduino.cc/arduino-cli/commands-reference/arduino-cli_compile)
 and [GCC prefix mapping](https://gcc.gnu.org/onlinedocs/gcc/Overall-Options.html).
 
+
+## NTP configuration
+
+`ntp_config.h` stores one versioned `timesource` blob in the `watchsync` NVS
+namespace. Missing records use defaults; invalid records block synchronization
+until corrected. Writes occur under the acknowledged radio storage pause and
+publish runtime settings only after a successful NVS commit.
+
+`ntp_transport.cpp` serializes stop and reconfiguration through `tcpip_api_call`
+on the pinned ESP32 TCP/IP task. SNTP receives numeric IPv4 endpoints only.
+Generation-scoped DNS callbacks reject obsolete resolutions after a source
+change. Pending lookups use a bounded pool. Configured DNS names are refreshed
+periodically, and unresolved names are retried. DHCP cannot add NTP servers.
+Server changes fence old callbacks and invalidate time trust before restarting.
+The ordinary sync notification records freshness, not independent accuracy or
+the identity of the responding server.
+
+Host checks: compile `tests/ntp_config_test.cpp` with `-Itests/device_fakes`;
+compile `tests/ntp_transport_test.cpp` with `-Itests/device_fakes -Itests/ntp_fakes`.
+Both use C++17. Transport fixtures exercise obsolete DNS callbacks, default and
+custom endpoints, failures and bounded requests; they do not emulate physical
+network timing or establish live server failover.

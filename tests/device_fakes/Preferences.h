@@ -48,6 +48,14 @@ class Preferences {
   size_t putString(const char *key, const char *value) {
     return putBytes(key, value, strlen(value) + 1) ? strlen(value) : 0;
   }
+  size_t getBytesLength(const char *key) {
+    return isKey(key) ? fakeNVS::data[space_][key].size() : 0;
+  }
+  size_t getBytes(const char *key, void *out, size_t capacity) {
+    const size_t size = getBytesLength(key);
+    if (!size || size > capacity) return 0;
+    memcpy(out, fakeNVS::data[space_][key].data(), size); return size;
+  }
   size_t getString(const char *key, char *out, size_t capacity) {
     if (!isKey(key)) return 0;
     const auto &bytes = fakeNVS::data[space_][key];

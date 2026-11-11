@@ -2,10 +2,10 @@
 // Based on nisejjy by SASAKI Taroh and clocksync by Tanvach.
 // Original fork contributions by axelaberg91: CC BY-NC 4.0; see LICENSE.md.
 // Inherited code is not relicensed; its license status remains unresolved.
-// Fork improvements (v1.4.0-v1.12.3) by axelaberg91: DCF77 reliability,
+// Fork improvements (v1.4.0-v1.13.0) by axelaberg91: DCF77 reliability,
 // time-sync safeguards, Atom Lite controls, Wi-Fi configuration, web time zones, OTA, device identity and factory reset.
 // Radio code, networking and display use separate execution paths.
-#define VERSION "1.12.3"
+#define VERSION "1.13.0"
 // The slim enclosure connects the coil to the Atom's GPIO25 pin interface.
 #define PIN_RADIO 25
 #define PIN_MEAS 33
@@ -25,6 +25,7 @@
 #include <esp_task_wdt.h>
 #include <esp_sntp.h>
 #include "time_policy.h"
+#include "ntp_transport.h"
 #include "transmission_policy.h"
 #include "time_zones.h"
 #include "web_ui.h"
@@ -263,8 +264,8 @@ static FirmwareUpdate firmwareUpdate(server, wifiConfiguration);
 
 static Preferences prefs;
 static TaskHandle_t radioTaskHandle = nullptr;
-static constexpr char NTP_PRIMARY[] = "pool.ntp.org";
-static constexpr char NTP_FALLBACK[] = "time.nist.gov";
+static watchsync::NtpConfiguration ntpConfiguration;
+static watchsync::NtpTransport ntpTransport;
 static bool ntpsync = true;
 static bool syncRequested = true;
 static bool ntpConfigured = false;
@@ -272,7 +273,7 @@ static bool ntpKicked = false;
 static bool wasConnected = false;
 static bool mdnsStarted = false;
 static bool mdnsAttempted = false;
-static uint32_t lastNtpKick = 0, lastMdnsAttempt = 0;
+static uint32_t lastNtpKick = 0, lastNtpRefresh = 0, lastMdnsAttempt = 0;
 static uint32_t timeEditGeneration = 0;
 static const uint32_t RETRY_MS = 60000;
 static String lastCmdResp;
@@ -1064,19 +1065,20 @@ void serviceNetwork() {
   } else if (!connected && mdnsStarted) {
     MDNS.end(); mdnsStarted = false; mdnsAttempted = false;
   }
-  if (connected && ntpsync && (!ntpConfigured || !wasConnected || syncRequested)) {
+  const bool refreshDue = ntpKicked && ms - lastNtpRefresh >= watchsync::NTP_INTERVAL_MS;
+  const bool resolveRetry = ntpTransport.unresolved() && ms - lastNtpKick >= RETRY_MS;
+  if (connected && ntpsync && !ntpConfiguration.error() &&
+      (!ntpConfigured || !wasConnected || syncRequested || refreshDue || resolveRetry)) {
     if (!ntpKicked || ms - lastNtpKick >= RETRY_MS) {
-      // Registers SNTP without waiting for a response. Periodic refresh stays enabled.
       esp_sntp_set_sync_interval(watchsync::NTP_INTERVAL_MS);
-      // Configure SNTP without rewriting TZ while the radio task is encoding a frame.
-      if (esp_sntp_enabled()) esp_sntp_stop();
-      esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
-      esp_sntp_setservername(0, NTP_PRIMARY);
-      esp_sntp_setservername(1, NTP_FALLBACK);
-      esp_sntp_setservername(2, nullptr);
-      esp_sntp_init();
-      ntpConfigured = ntpKicked = true;
-      syncRequested = false;
+      if (resolveRetry && ntpConfigured && wasConnected && !syncRequested && !refreshDue)
+        ntpTransport.retryDns();  // Keep a working server and its normal poll interval.
+      else {
+        ntpConfigured = ntpTransport.configure(&ntpConfiguration.record());
+        lastNtpRefresh = ms;
+      }
+      ntpKicked = true;
+      if (ntpConfigured) syncRequested = false;
       lastNtpKick = ms;
     }
   }
@@ -1140,8 +1142,12 @@ String generateStatusJSON() {
   s += ",\"wifi\":"; s += WiFi.status() == WL_CONNECTED ? "true" : "false";
   s += ",\"ip\":\""; if (WiFi.status() == WL_CONNECTED) s += WiFi.localIP().toString(); s += '"';
   s += ",\"ntp\":"; s += ntpsync ? "true" : "false";
-  s += ",\"ntpServers\":\""; s += NTP_PRIMARY; s += ", "; s += NTP_FALLBACK; s += '"';
-  s += ",\"syncPending\":"; s += syncRequested ? "true" : "false";
+  s += ",\"ntpServers\":\""; if (!ntpConfiguration.error()) { s += ntpConfiguration.record().first(); if (ntpConfiguration.record().second()[0]) { s += ", "; s += ntpConfiguration.record().second(); } } s += '"';
+  s += ",\"ntpCustom\":"; s += ntpConfiguration.record().custom ? "true" : "false";
+  s += ",\"ntpPrimary\":\""; if (!ntpConfiguration.error()) s += ntpConfiguration.record().first(); s += '"';
+  s += ",\"ntpSecondary\":\""; if (!ntpConfiguration.error()) s += ntpConfiguration.record().second(); s += '"';
+  s += ",\"ntpConfigError\":"; s += ntpConfiguration.error() ? "true" : "false";
+  s += ",\"syncPending\":"; s += syncRequested || !t.synced ? "true" : "false";
   s += ",\"station\":"; s += c.station;
   s += ",\"stationName\":\""; s += stationNames[c.station]; s += '"';
   s += ",\"frequency\":"; s += r.frequency;
@@ -1233,7 +1239,7 @@ int docmd(char *buf) {
   } else if (command == 'y' && n == 2 && (buf[1] == '0' || buf[1] == '1')) {
     ntpsync = buf[1] == '1';
     if (ntpsync) requestSync();
-    else { esp_sntp_stop(); ntpConfigured = false; syncRequested = false; }
+    else { ntpTransport.configure(nullptr); ntpConfigured = false; syncRequested = false; }
     save = true;
   } else if (command == 'f' && n == 1) {
     if (!r.active || !t.fresh(esp_timer_get_time()) || c.pin == PIN_MEAS) return 0;
@@ -1369,6 +1375,53 @@ bool deviceWriteAllowed() {
   return true;
 }
 
+void handleNtpSettings() {
+  if (!deviceWriteAllowed()) return;
+  const String mode = server.arg("mode");
+  String primary = server.arg("primary"), secondary = server.arg("secondary");
+  primary.trim(); secondary.trim(); primary.toLowerCase(); secondary.toLowerCase();
+  watchsync::NtpRecord next;
+  if (mode != "default" && mode != "custom") {
+    server.send(400,"application/json","{\"message\":\"Choose default or custom time servers.\"}"); return;
+  }
+  if (mode == "custom") {
+    if (!watchsync::validNtpHost(primary.c_str(), primary.length()) ||
+        (secondary.length() && !watchsync::validNtpHost(secondary.c_str(), secondary.length()))) {
+      server.send(400,"application/json","{\"message\":\"Enter a hostname or unicast IPv4 address, without a URL or port. Maximum 253 characters.\"}"); return;
+    }
+    next.custom = 1;
+    strcpy(next.primary, primary.c_str()); strcpy(next.secondary, secondary.c_str());
+  }
+  const bool changed = ntpConfiguration.error() || memcmp(&next, &ntpConfiguration.record(), sizeof(next)) != 0;
+  if (!changed) {
+    requestSync();
+  } else {
+    if (!pauseForStorage()) { server.send(503,"application/json","{\"message\":\"Could not pause transmission. Try again.\"}"); return; }
+    if (!ntpConfiguration.save(next)) {
+      resumeAfterStorage();
+      server.send(500,"application/json","{\"message\":\"Could not save time servers. Previous settings remain active.\"}"); return;
+    }
+    portENTER_CRITICAL(&stateMux);
+    control.editingTime = true; ++timeEditGeneration;
+    portEXIT_CRITICAL(&stateMux);
+    // Synchronous transport stop fences old callbacks before trust is cleared.
+    const bool stopped = ntpTransport.configure(nullptr);
+    portENTER_CRITICAL(&stateMux);
+    timeTrust = watchsync::TimeTrust();
+    ++timeEditGeneration;
+    control.editingTime = !stopped;  // Fail closed if the TCP/IP handoff fails.
+    portEXIT_CRITICAL(&stateMux);
+    ntpConfigured = false; ntpKicked = false;
+    requestSync();
+    resumeAfterStorage();
+    if (!stopped) {
+      server.send(503,"application/json","{\"message\":\"Time servers saved, but could not apply them. Restart the device. Transmission is paused.\"}"); return;
+    }
+  }
+  server.sendHeader("Cache-Control","no-store");
+  server.send(200,"application/json; charset=utf-8",generateStatusJSON());
+}
+
 void handleDeviceSettings() {
   if (!deviceWriteAllowed()) return;
   String hostname=server.arg("hostname"); hostname.toLowerCase();
@@ -1413,7 +1466,8 @@ String generateDiagnostics() {
   s += "\nWi-Fi: "; s += WiFi.status()==WL_CONNECTED ? "connected" : "disconnected";
   if (WiFi.status()==WL_CONNECTED) { s += "\nWi-Fi RSSI dBm: "; s += WiFi.RSSI(); }
   s += "\nLast Wi-Fi disconnect reason code: "; s += wifiConfiguration.lastDisconnectReason();
-  s += "\nConfigured NTP servers: "; s += NTP_PRIMARY; s += ", "; s += NTP_FALLBACK;
+  s += "\nTime source configuration: "; s += ntpConfiguration.error() ? "Invalid; save Time source settings" : ntpConfiguration.record().custom ? "Custom servers" : "Default servers";
+  s += "\nConfigured NTP servers: "; if (!ntpConfiguration.error()) { s += ntpConfiguration.record().first(); if (ntpConfiguration.record().second()[0]) { s += ", "; s += ntpConfiguration.record().second(); } }
   s += "\nConfirmed time age seconds: "; s += t.synced ? (long)((us-t.lastSyncUs)/1000000) : -1L;
   s += "\nFree heap bytes: "; s += ESP.getFreeHeap();
   s += "\nMinimum heap bytes: "; s += ESP.getMinFreeHeap();
@@ -1425,6 +1479,7 @@ String generateDiagnostics() {
 void setupWebServer() {
   const char *headers[]={"Origin"};
   server.collectHeaders(headers,1);
+  server.on("/api/ntp",HTTP_POST,handleNtpSettings);
   server.on("/api/device",HTTP_POST,handleDeviceSettings);
   server.on("/api/device/reset",HTTP_POST,handleFactoryReset);
   wifiConfiguration.registerRoutes();
@@ -1494,6 +1549,7 @@ void setup() {
     delay(3000); ESP.restart(); return;
   }
   loadSettings();
+  ntpConfiguration.load();
   timeZoneApplyFailed = !applyTimeZone(control.timeZone);
   control.changingTimeZone = timeZoneApplyFailed;
   control.timeZoneError = timeZoneApplyFailed;
