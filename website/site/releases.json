@@ -3,6 +3,18 @@
   "repository": "axelaberg91/watchsync",
   "releases": [
     {
+      "version": "1.14.0",
+      "target": "M5 Atom Lite (classic ESP32), GPIO25",
+      "partitionScheme": "min_spiffs",
+      "size": 1181744,
+      "sha256": "6a9a4ea580a3d26f826d808ae1e64859c92f43c7899aae4009b2d06f3ae3953b",
+      "date": "2026-11-13",
+      "summary": "View the latest 64 device events under Advanced: confirmed NTP updates, transmission starts and stops, Wi-Fi changes and faults. Refresh or copy the RAM-only history; it clears on restart. Compatible settings are retained.",
+      "summarySv": "Se de senaste 64 enhetsh\u00e4ndelserna under Advanced: bekr\u00e4ftade NTP-uppdateringar, s\u00e4ndningsstarter och stopp, Wi-Fi-f\u00f6r\u00e4ndringar och fel. Uppdatera eller kopiera historiken som lagras i RAM och t\u00f6ms vid omstart. Kompatibla inst\u00e4llningar beh\u00e5lls.",
+      "binaryUrl": "https://github.com/axelaberg91/watchsync/releases/download/v1.14.0/watchsync-1.14.0.bin",
+      "notesUrl": "https://github.com/axelaberg91/watchsync/releases/tag/v1.14.0"
+    },
+    {
       "version": "1.13.0",
       "target": "M5 Atom Lite (classic ESP32), GPIO25",
       "partitionScheme": "min_spiffs",

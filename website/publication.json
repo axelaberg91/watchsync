@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "state": "ready",
   "repository": "axelaberg91/watchsync",
-  "firmwareVersion": "1.13.0",
+  "firmwareVersion": "1.14.0",
   "firmware": {
-    "version": "1.13.0",
-    "tag": "v1.13.0",
+    "version": "1.14.0",
+    "tag": "v1.14.0",
     "assets": [
       {
         "name": "CC-BY-NC-4.0.txt",
@@ -19,23 +19,23 @@
       },
       {
         "name": "manifest.json",
-        "size": 422,
-        "sha256": "fe0305c6ff679ac6cf1280a2cf3e09274be235a2883b2e103caed0b7265b996f"
+        "size": 410,
+        "sha256": "6541732be44ce095e52c98b9cd58a7f6bd6f6958f7dc5667ee8f3657ebcb7fb2"
       },
       {
         "name": "RELEASE_NOTES.md",
-        "size": 2816,
-        "sha256": "dac50ecf566b19cba5d6f7f61e84f965abfdb1120198418e16b1c27ca5164fea"
+        "size": 2152,
+        "sha256": "3e5aca8b991d0bbd79a9d2e84f1364f368ed4ad6350d01d624f8a741852f22df"
       },
       {
         "name": "SHA256SUMS",
-        "size": 88,
-        "sha256": "dfaaab8c2286291fb18e803843ff91c5f4a8246f34fae3ea35827f0422653e22"
+        "size": 87,
+        "sha256": "64ed772dfc561f266f9ffce4e04a6edc34f6c5a150f99b9e575e5614cf31f747"
       },
       {
-        "name": "watchsync-1.13.0.bin",
-        "size": 1171712,
-        "sha256": "843d9ba60702b9e38d2e381f112276300169573c6ae17845157543d0f63a414c"
+        "name": "watchsync-1.14.0.bin",
+        "size": 1181744,
+        "sha256": "6a9a4ea580a3d26f826d808ae1e64859c92f43c7899aae4009b2d06f3ae3953b"
       }
     ]
   },
