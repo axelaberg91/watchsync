@@ -6,7 +6,7 @@ Inherited firmware and dependencies retain their separate licensing status.
 Current downloads and installation instructions are on the
 [Watchsync website](https://axelaberg91.github.io/watchsync/updates.html).
 
-## 1.14.0 (unreleased)
+## 1.14.0
 
 - Add Advanced → Event log with 64 recent NTP, transmission, connection and
   fault events. Refresh or copy the history from the device interface.
