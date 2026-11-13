@@ -2,10 +2,10 @@
 // Based on nisejjy by SASAKI Taroh and clocksync by Tanvach.
 // Original fork contributions by axelaberg91: CC BY-NC 4.0; see LICENSE.md.
 // Inherited code is not relicensed; its license status remains unresolved.
-// Fork improvements (v1.4.0-v1.13.0) by axelaberg91: DCF77 reliability,
+// Fork improvements (v1.4.0-v1.14.0) by axelaberg91: DCF77 reliability,
 // time-sync safeguards, Atom Lite controls, Wi-Fi configuration, web time zones, OTA, device identity and factory reset.
 // Radio code, networking and display use separate execution paths.
-#define VERSION "1.13.0"
+#define VERSION "1.14.0"
 // The slim enclosure connects the coil to the Atom's GPIO25 pin interface.
 #define PIN_RADIO 25
 #define PIN_MEAS 33
@@ -25,6 +25,9 @@
 #include <esp_task_wdt.h>
 #include <esp_sntp.h>
 #include "time_policy.h"
+#include "event_log.h"
+#include <memory>
+#include <new>
 #include "ntp_transport.h"
 #include "transmission_policy.h"
 #include "time_zones.h"
@@ -230,6 +233,9 @@ struct Control {
 };
 
 struct RadioStatus {
+  uint32_t startSequence = 0;
+  int station = -1;
+  bool carrierTest = false;
   bool active = false;
   bool aligning = false;
   bool sessionPending = false;
@@ -252,6 +258,7 @@ static portMUX_TYPE stateMux = portMUX_INITIALIZER_UNLOCKED;
 static Control control;
 static RadioStatus radioStatus;
 static watchsync::TimeTrust timeTrust;
+static watchsync::EventHistory eventHistory;
 static watchsync::ButtonGesture button;
 static watchsync::DebouncedButton buttonInput;
 static WebServer server(80);
@@ -300,8 +307,11 @@ void snapshot(Control &c, watchsync::TimeTrust &t, RadioStatus &r) {
   portEXIT_CRITICAL(&stateMux);
 }
 
-void publishRadio(const RadioStatus &r) {
+void publishRadio(const RadioStatus &r, int64_t uptimeUs = 0, int64_t epoch = 0) {
+  // Capture fixed-size records only; no allocation, formatting or I/O on the radio task.
   portENTER_CRITICAL(&stateMux);
+  eventHistory.observeRadio(r.active, r.station, r.carrierTest, r.startSequence, r.error,
+                            uptimeUs, epoch);
   radioStatus = r;
   portEXIT_CRITICAL(&stateMux);
 }
@@ -357,7 +367,10 @@ void onTimeSync(struct timeval *tv) {
   if (llabs(difference) > 50000) return;
   const int64_t us = esp_timer_get_time();
   portENTER_CRITICAL(&stateMux);
-  if (!control.editingTime && generation == timeEditGeneration) timeTrust.record(us, tv->tv_sec);
+  if (!control.editingTime && generation == timeEditGeneration) {
+    timeTrust.record(us, tv->tv_sec);
+    eventHistory.timeSynchronized(us, tv->tv_sec);
+  }
   portEXIT_CRITICAL(&stateMux);
 }
 
@@ -747,7 +760,7 @@ void radioTask(void *) {
   // The carrier runs in hardware; reset the device if this task stops making progress.
   const esp_err_t watchdog = esp_task_wdt_add(nullptr);
   if (watchdog != ESP_OK) {
-    RadioStatus fault; fault.error=watchdog; publishRadio(fault);
+    RadioStatus fault; fault.error=watchdog; publishRadio(fault, esp_timer_get_time());
     for (;;) vTaskDelay(pdMS_TO_TICKS(1000));  // Fail closed if supervision is unavailable.
   }
   Control configured, previousControl;
@@ -768,6 +781,7 @@ void radioTask(void *) {
   for (;;) {
     Control c; watchsync::TimeTrust trust; RadioStatus ignored;
     snapshot(c, trust, ignored);
+    const bool outputWasActive = state.active;
     const int64_t monotonic = esp_timer_get_time();
     struct timeval tv; gettimeofday(&tv, nullptr);
     const int64_t wallUs = (int64_t)tv.tv_sec * 1000000 + tv.tv_usec;
@@ -888,10 +902,15 @@ void radioTask(void *) {
         c.requested && !scheduleOpen && !sessionWanted, c.setupAP);
     if (c.updatingFirmware && c.led && !c.setupAP) state.light = watchsync::StatusLight::Yellow;
     indicator(state.light);
-    publishRadio(state);
+    if (state.active) {
+      if (!outputWasActive || changed || (fresh && clockStep)) ++state.startSequence;
+      state.station = c.station;
+      state.carrierTest = c.testCarrier;
+    }
+    publishRadio(state, monotonic, fresh ? tv.tv_sec : 0);
     esp_task_wdt_reset();
     // Wall-clock sampling avoids accumulated tick drift and catches NTP corrections.
-    // No HTTP, flash writes, logging or network operations run in this task.
+    // No HTTP, flash writes, log formatting or network operations run in this task.
     vTaskDelay(1);
   }
 }
@@ -1053,7 +1072,13 @@ void serviceNetwork() {
   wifiConfiguration.service();
   const bool connected = WiFi.status() == WL_CONNECTED;
   const uint32_t ms = millis();
+  const int64_t us = esp_timer_get_time();
+  const int64_t wall = time(nullptr);
   portENTER_CRITICAL(&stateMux);
+  const int64_t eventTime = timeTrust.fresh(us) ? wall : 0;
+  eventHistory.observeWifi(connected, us, eventTime);
+  eventHistory.observeTime(timeTrust.fresh(us), us, eventTime);
+  eventHistory.observeConfiguration(control.timeZoneError, ntpConfiguration.error(), us, eventTime);
   control.wifiConnected = connected;
   control.setupAP = wifiConfiguration.portalActive();
   portEXIT_CRITICAL(&stateMux);
@@ -1476,6 +1501,61 @@ String generateDiagnostics() {
   return s;
 }
 
+String eventMessage(const watchsync::DeviceEvent &event) {
+  using watchsync::EventKind;
+  switch (event.kind) {
+    case EventKind::Startup: return "Device started";
+    case EventKind::TimeSynchronized: return "NTP time sync confirmed";
+    case EventKind::WifiConnected: return "Wi-Fi connected";
+    case EventKind::WifiDisconnected: return "Wi-Fi disconnected";
+    case EventKind::TimeInvalid: return "Time no longer confirmed; a new NTP sync is required";
+    case EventKind::TimeZoneError: return "Time zone could not be applied";
+    case EventKind::NtpConfigurationError: return "Time source configuration is invalid";
+    case EventKind::RadioError: return String("Radio error: ") + event.detail;
+    case EventKind::CarrierTestStarted: return "Frequency test started";
+    case EventKind::CarrierTestStopped: return "Frequency test stopped";
+    case EventKind::RadioStarted:
+    case EventKind::RadioStopped: {
+      String message = event.kind == EventKind::RadioStarted ? "Transmission started: " : "Transmission stopped: ";
+      return message + (event.detail >= 0 && event.detail < 7 ? stationNames[event.detail] : "Unknown signal");
+    }
+  }
+  return "Unknown event";
+}
+
+void handleEventLog() {
+  if (!wifiConfiguration.lanClient()) {
+    server.send(403,"text/plain","Open the event log through your normal Wi-Fi network."); return;
+  }
+  // Allocate the bounded snapshot outside the lock and outside the radio task.
+  std::unique_ptr<watchsync::DeviceEvent[]> events(new (std::nothrow) watchsync::DeviceEvent[watchsync::EventHistory::CAPACITY]);
+  if (!events) { server.send(503,"text/plain","Not enough free memory to read the event log."); return; }
+  portENTER_CRITICAL(&stateMux);
+  const size_t count = eventHistory.copyNewest(events.get(), watchsync::EventHistory::CAPACITY);
+  portEXIT_CRITICAL(&stateMux);
+  String json;
+  if (!json.reserve(10000)) { server.send(503,"text/plain","Not enough free memory to read the event log."); return; }
+  json = "{\"capacity\":64,\"events\":[";
+  for (size_t i = 0; i < count; ++i) {
+    const auto &event = events[i];
+    char uptime[32], stamp[32] = {};
+    snprintf(uptime,sizeof(uptime),"%llu",(unsigned long long)(event.uptimeUs / 1000000));
+    if (event.epochSeconds && timeZoneApplied) {
+      const time_t epoch = (time_t)event.epochSeconds;
+      struct tm local; localtime_r(&epoch,&local);
+      strftime(stamp,sizeof(stamp),"%Y-%m-%d %H:%M:%S",&local);
+    }
+    if (i) json += ',';
+    json += "{\"sequence\":"; json += event.sequence;
+    json += ",\"uptimeSeconds\":"; json += uptime;
+    json += ",\"time\":\""; json += stamp;
+    json += "\",\"message\":\""; json += eventMessage(event); json += "\"}";
+  }
+  json += "]}";
+  server.sendHeader("Cache-Control","no-store");
+  server.send(200,"application/json; charset=utf-8",json);
+}
+
 void setupWebServer() {
   const char *headers[]={"Origin"};
   server.collectHeaders(headers,1);
@@ -1506,6 +1586,7 @@ void setupWebServer() {
     server.sendHeader("Cache-Control","no-store");
     server.send(200,"application/json; charset=utf-8",generateStatusJSON());
   });
+  server.on("/api/events", HTTP_GET, handleEventLog);
   server.on("/api/diagnostics", HTTP_GET, [](){
     if (!wifiConfiguration.lanClient()) { server.send(403,"text/plain","Open Help through your normal Wi-Fi network."); return; }
     server.sendHeader("Cache-Control","no-store");
@@ -1533,6 +1614,7 @@ void setupWebServer() {
 }
 
 void setup() {
+  eventHistory.record(watchsync::EventKind::Startup, esp_timer_get_time(), 0);
   Serial.begin(115200);
 #if PIN_LED >= 0
   pinMode(PIN_LED,OUTPUT);
@@ -1561,7 +1643,7 @@ void setup() {
   firmwareUpdate.begin(pauseForFirmware, resumeAfterFirmware);
 
   const BaseType_t taskOk=xTaskCreatePinnedToCore(radioTask,"radio",6144,nullptr,4,&radioTaskHandle,1);
-  if(taskOk!=pdPASS) { RadioStatus r; r.error=ESP_ERR_NO_MEM; publishRadio(r); }
+  if(taskOk!=pdPASS) { RadioStatus r; r.error=ESP_ERR_NO_MEM; publishRadio(r, esp_timer_get_time()); }
   Serial.println("watchsync " VERSION " ready. Waiting for confirmed NTP time.");
   Serial.println("Firmware profile: portal-only");
 

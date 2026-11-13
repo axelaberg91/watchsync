@@ -24,14 +24,15 @@ class Element {
   focus() {}
   select() {}
 }
-async function page(html, status, wifiState = 'idle', ntpFailure = false) {
+async function page(html, status, wifiState = 'idle', ntpFailure = false, eventOptions = {}) {
   const elements = new Map([...html.matchAll(/<[^>]+\bid="([^"]+)"[^>]*>/g)].map(m => [m[1], new Element(m[0])]));
   const timers = new Map(), calls = []; let timerId = 0;
   const network = {ssid:'Example network',rssi:-45,open:false};
   const document = {hidden:false, getElementById(id) { assert(elements.has(id), 'Missing UI element: '+id); return elements.get(id); }, createElement() { return new Element(); }, addEventListener() {}};
-  const context = vm.createContext({document, URLSearchParams, AbortController, performance:{now:()=>0},
+  const context = vm.createContext({document, navigator:eventOptions.navigator, isSecureContext:!!eventOptions.navigator, URLSearchParams, AbortController, performance:{now:()=>0},
     setTimeout(fn) { timers.set(++timerId, fn); return timerId; }, clearTimeout(id) { timers.delete(id); },
-    fetch: async (url, options) => { calls.push({url, options}); return {ok:!(url==='/api/ntp'&&ntpFailure),status:url==='/api/ntp'&&ntpFailure?500:200, headers:{get:()=> url==='/api/diagnostics'?'text/plain':'application/json'}, text:async()=> 'watchsync test\nWi-Fi: connected\nConfigured NTP servers: pool.ntp.org, time.nist.gov', json:async()=> {
+    fetch: async (url, options) => { calls.push({url, options}); return {ok:!(url==='/api/ntp'&&ntpFailure)&&!(url==='/api/events'&&eventOptions.fail),status:url==='/api/events'&&eventOptions.fail?503:url==='/api/ntp'&&ntpFailure?500:200, headers:{get:()=> url==='/api/diagnostics'?'text/plain':'application/json'}, text:async()=> 'watchsync test\nWi-Fi: connected\nConfigured NTP servers: pool.ntp.org, time.nist.gov', json:async()=> {
+      if (url==='/api/events') { if(eventOptions.fail)return {message:'Event log temporarily unavailable'}; if(eventOptions.pending)await eventOptions.pending; return eventOptions.data||{capacity:64,events:[]}; }
       if (url==='/api/status') return status;
       if (url==='/api/wifi') return {token:'setup-token',state:wifiState,ssid:'',ip:'192.0.2.12',message:'Connection status',hostname:status.hostname,nextHostname:status.nextHostname};
       if (url==='/api/wifi/networks') return {state:'ready',networks:[network]};
@@ -189,6 +190,52 @@ async function main() {
   const setupCache=await page(setup,base);
   assert(setupCache.calls.filter(c=>c.url==='/api/wifi/networks').every(c=>!c.options.method||c.options.method==='GET'));
   assert(!ui.includes('<h1>Transmitter</h1>'));
+  const eventsData={capacity:64,events:[
+    {sequence:1,uptimeSeconds:4,time:'',message:'Device started'},
+    {sequence:2,uptimeSeconds:90061,time:'2026-11-13 13:00:00',message:'<img src=x onerror=alert(1)>'}
+  ]};
+  let releaseEvents;const eventOptions={data:eventsData,pending:new Promise(resolve=>{releaseEvents=resolve;})};
+  const events=await page(ui,base,'idle',false,eventOptions);
+  assert(!events.calls.some(c=>c.url==='/api/events'),'Collapsed Advanced must not request events');
+  const timerCount=events.timers.size;
+  events.elements.get('advancedSettings').open=true;
+  events.elements.get('advancedSettings').listeners.toggle.call(events.elements.get('advancedSettings'));
+  await events.settle();
+  assert(events.elements.get('refreshEvents').disabled && events.elements.get('copyEvents').disabled);
+  events.elements.get('refreshEvents').listeners.click();await events.settle();
+  assert.equal(events.calls.filter(c=>c.url==='/api/events').length,1,'Only one outstanding event request');
+  releaseEvents();await events.settle();
+  const eventRows=events.elements.get('eventRows').children;
+  assert.equal(eventRows[0].children[0].textContent,'2026-11-13 13:00:00');
+  assert.equal(eventRows[0].children[1].textContent,'<img src=x onerror=alert(1)>','Render event messages as literal text');
+  assert.equal(eventRows[1].children[0].textContent,'Uptime 00:00:04');
+  assert.equal(events.timers.size,timerCount,'Event log adds no recurring timer');
+  events.elements.get('copyEvents').listeners.click();await events.settle();
+  assert.equal(events.elements.get('eventsText').hidden,false);
+  assert(events.elements.get('eventsText').value.includes('Device started'));
+  assert(events.elements.get('eventsFeedback').textContent.includes('Select and copy'));
+  eventOptions.fail=true;events.elements.get('refreshEvents').listeners.click();await events.settle();
+  assert(events.elements.get('eventsFeedback').textContent.includes('unavailable'));
+  assert.equal(events.elements.get('eventRows').children.length,2,'Keep previous events on refresh failure');
+  assert.equal(events.elements.get('toggle').disabled,false,'Log failure must not disable transmission controls');
+  assert.equal(events.elements.get('refreshEvents').disabled,false,'Allow retry');
+  eventOptions.fail=false;eventOptions.data={capacity:64,events:[]};
+  events.elements.get('refreshEvents').listeners.click();await events.settle();
+  assert.equal(events.elements.get('eventRows').children.length,0);
+  assert.equal(events.elements.get('eventsEmpty').hidden,false);
+  eventOptions.data={events:[{sequence:3,uptimeSeconds:-1,time:'',message:'invalid'}]};
+  events.elements.get('refreshEvents').listeners.click();await events.settle();
+  assert(events.elements.get('eventsFeedback').textContent.includes('invalid event log'));
+  const initialFailure=await page(ui,base,'idle',false,{fail:true});
+  initialFailure.elements.get('refreshEvents').listeners.click();await initialFailure.settle();
+  assert(initialFailure.elements.get('eventsEmpty').textContent.includes('Choose Refresh to retry'));
+  assert.equal(initialFailure.elements.get('copyEvents').disabled,true);
+  const clipboard=await page(ui,base,'idle',false,{data:eventsData,navigator:{clipboard:{writeText:async()=>{throw new Error('Denied');}}}});
+  clipboard.elements.get('refreshEvents').listeners.click();await clipboard.settle();
+  clipboard.elements.get('copyEvents').listeners.click();await clipboard.settle();
+  assert.equal(clipboard.elements.get('eventsText').hidden,false);
+  assert(clipboard.elements.get('eventsFeedback').textContent.includes('Select and copy'));
+  assert.equal(clipboard.elements.get('refreshEvents').disabled,false);
   console.log('PASS interface: existing controls, custom setup address, deferred hostname change, confirmed factory reset, bounded timers');
 }
 main().catch(error => { console.error(error); process.exitCode=1; });

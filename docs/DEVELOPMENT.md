@@ -104,3 +104,19 @@ compile `tests/ntp_transport_test.cpp` with `-Itests/device_fakes -Itests/ntp_fa
 Both use C++17. Transport fixtures exercise obsolete DNS callbacks, default and
 custom endpoints, failures and bounded requests; they do not emulate physical
 network timing or establish live server failover.
+
+## Device event history
+
+`event_log.h` keeps 64 fixed-size records in RAM. All producers and snapshots
+use `stateMux`. The accepted SNTP callback records confirmed time updates;
+radio publication records actual output transitions and changed errors. The
+radio path only captures fixed-size records, without allocation, text formatting,
+flash writes or network access. The normal loop observes Wi-Fi and trust faults.
+
+The LAN-only `GET /api/events` endpoint copies a bounded snapshot under the
+lock, then formats it outside the lock. Unknown event time remains uptime-only;
+records are not retrospectively assigned wall time. Displayed dates use the
+currently selected device time zone. History clears on restart. The Advanced
+panel fetches only on opening or explicit Refresh; Copy uses that displayed
+snapshot. No credentials, SSIDs, IP addresses or configured server names are
+recorded. Host tests do not verify physical radio timing under concurrent reads.
