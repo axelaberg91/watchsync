@@ -6,6 +6,16 @@ Inherited firmware and dependencies retain their separate licensing status.
 Current downloads and installation instructions are on the
 [Watchsync website](https://axelaberg91.github.io/watchsync/updates.html).
 
+## 1.14.0 (unreleased)
+
+- Add Advanced → Event log with 64 recent NTP, transmission, connection and
+  fault events. Refresh or copy the history from the device interface.
+- Keep history in RAM until restart, using device-local time when confirmed
+  and uptime otherwise. No Wi-Fi credentials or network names are logged.
+- A transmission-start entry does not confirm watch reception.
+
+See the [1.14.0 release notes](releases/1.14.0.md).
+
 ## 1.13.0
 
 - Add default or custom NTP servers under Network settings → Time source.

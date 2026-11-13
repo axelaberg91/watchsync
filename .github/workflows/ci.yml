@@ -49,6 +49,8 @@ jobs:
           "$RUNNER_TEMP/watchsync-ntp-config-test"
           g++ -std=c++17 -O2 -Itests/device_fakes -Itests/ntp_fakes tests/ntp_transport_test.cpp -o "$RUNNER_TEMP/watchsync-ntp-transport-test"
           "$RUNNER_TEMP/watchsync-ntp-transport-test"
+          g++ -std=c++17 -O2 tests/event_log_test.cpp -o "$RUNNER_TEMP/watchsync-event-log-test"
+          "$RUNNER_TEMP/watchsync-event-log-test"
           node tests/web_ui_test.js
           node tests/request_test.js
           node tests/ota_ui_test.js
