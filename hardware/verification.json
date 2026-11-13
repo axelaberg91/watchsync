@@ -1,11 +1,24 @@
 {
-  "revision": "hardware-v15",
+  "revision": "hardware-v16",
+  "releaseStatus": "unreleased",
   "model": "watchsync-enclosure.scad",
   "websiteURL": "https://axelaberg91.github.io/watchsync/",
-  "printedAddress": "axelaberg91.github.io/watchsync/",
-  "qrWidthIncludingQuietZoneMm": 50.9,
-  "quietZoneModules": 4,
+  "printedAddress": null,
+  "qrMatrixWidthIncludingNominalQuietZoneMm": 62.4,
+  "qrActiveSymbolWidthMm": 48.9081081081081,
+  "qrMatrixBorderModules": 4,
+  "fullPhysicalQuietZoneAvailable": false,
+  "nominalQrTopEdgeClearanceMm": 1.0459459459459524,
+  "nominalQrCentreScrewClearanceMm": 1.145945945945948,
   "engravingDepthMm": 0.4,
-  "rowCentreSpacingMm": 13.3,
+  "textRows": [
+    "WATCHSYNC",
+    "TIME SIGNAL TRANSMITTER"
+  ],
+  "textRowWidthsMm": [
+    45.41874694824219,
+    100.0
+  ],
+  "rowCentreSpacingMm": 20.0,
   "physicalPrintVerified": false
 }

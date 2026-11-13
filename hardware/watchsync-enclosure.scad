@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC-BY-NC-4.0
 // Original watchsync prototype CAD by axelaberg91; CC BY-NC 4.0. See LICENSE.md.
-// Review prototype v15. Dimensions in mm. Positive Y is the USB/rear edge.
+// Review prototype v16. Dimensions in mm. Positive Y is the USB/rear edge.
 // Button, reset, USB and wire clearances still require a physical fit check.
 
 part = "assembly"; // [assembly,exploded,base,lid,bobbin,atom,winding]
@@ -155,9 +155,10 @@ module connector_support() {
 
 // QR target: https://axelaberg91.github.io/watchsync/
 // Maximize the upright QR footprint above the centre screw in underside view.
-// The code retains four quiet modules; visible engraving stays well inside
-// the plate. Quiet-zone bounds: X +/-25.45, Y 2.25..53.15 mm.
-qr_width = 50.9;
+// The active symbol grows by approximately 4.5 mm per side.
+// Nominal four-module padding extends beyond the plate and across the centre
+// screw; the physical quiet zone is constrained and requires a print scan.
+qr_width = 62.4;
 qr_modules = 37;
 qr_pitch = qr_width/qr_modules;
 qr_center = [0,27.7]; // underside view; assembled world Y is negative
@@ -175,21 +176,15 @@ module underside_engraving() {
             for (line=[
     [
         "WATCHSYNC",
-        0.047419,
-        -9.942209,
-        3.668774
+        0.07108306884765625,
+        -14.063278198242188,
+        5.5
     ],
     [
         "TIME SIGNAL TRANSMITTER",
-        -0.114759,
-        -23.242209,
-        3.668774
-    ],
-    [
-        "axelaberg91.github.io/watchsync/",
-        -0.127144,
-        -36.529778,
-        3.668774
+        -0.17089080810546875,
+        -34.06285858154297,
+        5.4633166828442565
     ]
 ])
                 translate([line[1],line[2]])
